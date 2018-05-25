@@ -1,11 +1,14 @@
 import pandas as pd
 
+from .utils import measure_time
+
 
 class Data:
     __slots__ = ('in_folder', 'out_folder',
                  'calendar_dates_df', 'trips_df')
 
 
+@measure_time
 def setup(args):
     print("Reading the GTFS files...")
     Data.in_folder = args.folder

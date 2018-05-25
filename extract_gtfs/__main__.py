@@ -1,6 +1,7 @@
 import argparse
 
 from .data import setup
+from .extract_dates import CalendarDates
 
 
 def parse_args():
@@ -30,6 +31,8 @@ def check_args(parser, args):
 def main():
     args = parse_args()
     setup(args)
+
+    CalendarDates.extract()
 
 
 if __name__ == "__main__":

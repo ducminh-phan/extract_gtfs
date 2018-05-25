@@ -1,6 +1,6 @@
 import argparse
 
-from .info import Info
+from .data import setup
 
 
 def parse_args():
@@ -29,10 +29,7 @@ def check_args(parser, args):
 
 def main():
     args = parse_args()
-    print(args)
-
-    Info.in_folder = args.folder
-    Info.out_folder = args.output
+    setup(args)
 
 
 if __name__ == "__main__":

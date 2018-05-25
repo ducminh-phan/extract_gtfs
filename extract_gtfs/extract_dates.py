@@ -29,12 +29,10 @@ class CalendarDates:
         print("Finding the services available for each day...")
 
         d2s = {}
+        date_groups = Data.calendar_dates_df.groupby('date')
         for date_str in tqdm(Data.calendar_dates_df['date'].unique()):
-            d2s[date_str] = set(
-                Data.calendar_dates_df[
-                    Data.calendar_dates_df['date'] == date_str
-                    ]['service_id']
-            )
+            df = date_groups.get_group(date_str)
+            d2s[date_str] = set(df['service_id'])
 
         cls.date_to_services = d2s
 
@@ -43,10 +41,13 @@ class CalendarDates:
         print("\nFinding the trips available for each day...")
 
         d2t = {}
+        service_groups = Data.trips_df.groupby('service_id')
         for date_str, services in tqdm(cls.date_to_services.items()):
-            trips = set(trip for service in services
-                        for trip in set(Data.trips_df[Data.trips_df['service_id'] == service]['trip_id'])
-                        )
-            d2t[date_str] = trips
+            trips_set = set()
+            for service in services:
+                df = service_groups.get_group(service)
+                trips_set |= set(df['trip_id'])
+
+            d2t[date_str] = trips_set
 
         cls.date_to_trips = d2t

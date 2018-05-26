@@ -35,13 +35,8 @@ def date_to_str(date_obj):
     return '{0.year}{0.month:0>2}{0.day}'.format(date_obj)
 
 
-class CalendarDates(metaclass=LogAttribute):
+class ExtractDate(metaclass=LogAttribute):
     __slots__ = ('date_to_services', 'date_to_trips')
-
-    @classmethod
-    def extract(cls):
-        cls.get_services_by_date()
-        cls.get_trips_by_date()
 
     @classmethod
     @load_attr('date_to_services')
@@ -75,8 +70,9 @@ class CalendarDates(metaclass=LogAttribute):
 
     @classmethod
     @load_attr({Data: ['dates', 'date_to_trips']})
-    def get_dates(cls):
-        cls.extract()
+    def extract(cls):
+        cls.get_services_by_date()
+        cls.get_trips_by_date()
 
         print("\nFinding the two consecutive busiest days...")
 

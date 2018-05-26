@@ -3,6 +3,7 @@ from datetime import date
 from tqdm import tqdm
 
 from .data import Data
+from .utils import LogAttribute, save_load
 
 
 def str_to_date(date_string):
@@ -16,10 +17,11 @@ def str_to_date(date_string):
     return date(year, month, day)
 
 
-class CalendarDates:
+class CalendarDates(LogAttribute):
     __slots__ = ('date_to_services', 'date_to_trips')
 
     @classmethod
+    @save_load
     def extract(cls):
         cls.get_services_by_date()
         cls.get_trips_by_date()

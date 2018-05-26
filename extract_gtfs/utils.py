@@ -44,47 +44,86 @@ def measure_time(func):
     return wrapper
 
 
-class LogAttribute:
-    @classmethod
-    def save_attributes(cls, directory):
+class SaveLoadDescriptor:
+    """
+    Descriptor class which supports saving automatically to avoid
+    recomputing expensive computations.
+    """
+    directory = "tmp/{}".format(parse_args().folder)
+
+    def __init__(self, name):
+        self.name = name
+
+        # Different classes might have attributes of the same name,
+        # so we need to map the class to the actual value
+        self.value = dict()
+
+    def get_file_name(self, instance):
+        return "{}.{}.pickle".format(instance.__name__, self.name)
+
+    def __set__(self, instance, value):
+        file_name = self.get_file_name(instance)
+
         # Create the folder to save the temporary files
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
 
-        # Pickle all attribute from __slots__
-        for key in cls.__slots__:
-            value = getattr(cls, key)
+        with open("{}/{}".format(self.directory, file_name), 'wb') as f:
+            pickle.dump(value, f)
 
-            with open('{}/{}.pickle'.format(directory, key), 'wb') as f:
-                pickle.dump(value, f)
+        self.value[instance] = value
 
-    @classmethod
-    def load_attributes(cls, directory):
+    def __get__(self, instance, owner):
+        if self.name not in instance.__slots__:
+            raise AttributeError("{} has no attribute {}".format(instance.__name__, self.name))
+
+        value = self.value.get(instance, None)
+        if value is not None:
+            # The value exists, which means either this value was loaded from files,
+            # or computed in a previous function, we just need return this value
+            return value
+
+        file_name = self.get_file_name(instance)
+
         try:
-            for key in cls.__slots__:
-                with open('{}/{}.pickle'.format(directory, key), 'rb') as f:
-                    print("\nLoading precomputed {}.{}".format(cls.__name__, key))
-                    value = pickle.load(f)
+            with open("{}/{}".format(self.directory, file_name), 'rb') as f:
+                print("\nLoading precomputed {} from file".format(file_name[:-7]))
+                value = pickle.load(f)
 
-                setattr(cls, key, value)
-
-            return True
+            self.value[instance] = value
+            return value
         except FileNotFoundError:
-            return False
+            # This is the first time getting the attribute, return None to execute
+            # the function computing this attribute, using the `load_attr` decorator
+            return None
 
 
-def save_load(func):
-    @wraps(func)
-    def wrapper(cls, *args, **kwargs):
-        from .data import Data
-        directory = 'tmp/{}'.format(Data.in_folder)
+class LogAttribute(type):
+    def __new__(mcs, name, bases, namespace):
+        # Create and assign decriptors based on __slots__ of the derived classes
+        for key in namespace['__slots__']:
+            # Skip names containing df since they are DataFrames loaded from the GTFS files,
+            # also skip attributes which are already assigned
+            if 'df' not in key and key not in mcs.__dict__:
+                setattr(mcs, key, SaveLoadDescriptor(key))
 
-        file_exists = cls.load_attributes(directory)
+        return super().__new__(mcs, name, bases, namespace)
 
-        if not file_exists:
-            res = func(cls, *args, **kwargs)
-            cls.save_attributes(directory)
 
-            return res
+def load_attr(attr_name):
+    """
+    Return the decorator to check if the attribute was already computed.
+    If not, compute and set the attribute using the decorated (class)method
+    """
 
-    return wrapper
+    def decorator(func):
+        @wraps(func)
+        def wrapper(cls, *args, **kwargs):
+            val = getattr(cls, attr_name)
+
+            if val is None:
+                func(cls, *args, **kwargs)
+
+        return wrapper
+
+    return decorator

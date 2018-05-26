@@ -1,9 +1,9 @@
 import pandas as pd
 
-from .utils import measure_time
+from .utils import measure_time, LogAttribute
 
 
-class Data:
+class Data(metaclass=LogAttribute):
     __slots__ = ('in_folder', 'out_folder',
                  'dates', 'date_to_trips',
                  'calendar_dates_df', 'trips_df')

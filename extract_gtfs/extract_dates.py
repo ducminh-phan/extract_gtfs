@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from tqdm import tqdm
 
 from .data import Data
-from .utils import LogAttribute, save_load
+from .utils import LogAttribute, load_attr
 
 
 def str_to_date(date_string):
@@ -20,27 +20,31 @@ def str_to_date(date_string):
 def date_to_str(date_obj):
     """
     Convert a date object to the string form used in GTFS files.
-    It is the inverse of the str_to_date function
 
     >>> date_to_str(date(2018, 8, 25))
     '20180825'
 
+    It is the inverse of the str_to_date function.
+
     >>> date_to_str(str_to_date("20180825"))
     '20180825'
+
+    >>> str_to_date(date_to_str(date(2018, 8, 25)))
+    datetime.date(2018, 8, 25)
     """
     return '{0.year}{0.month:0>2}{0.day}'.format(date_obj)
 
 
-class CalendarDates(LogAttribute):
+class CalendarDates(metaclass=LogAttribute):
     __slots__ = ('date_to_services', 'date_to_trips')
 
     @classmethod
-    @save_load
     def extract(cls):
         cls.get_services_by_date()
         cls.get_trips_by_date()
 
     @classmethod
+    @load_attr('date_to_services')
     def get_services_by_date(cls):
         print("\nFinding the services available for each day...")
 
@@ -53,6 +57,7 @@ class CalendarDates(LogAttribute):
         cls.date_to_services = d2s
 
     @classmethod
+    @load_attr('date_to_trips')
     def get_trips_by_date(cls):
         print("\nFinding the trips available for each day...")
 

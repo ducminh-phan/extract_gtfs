@@ -38,11 +38,11 @@ class LogAttribute:
         try:
             for key in cls.__slots__:
                 with open('{}/{}.pickle'.format(directory, key), 'rb') as f:
+                    print("\nLoading precomputed {}.{}".format(cls.__name__, key))
                     value = pickle.load(f)
 
                 setattr(cls, key, value)
 
-            print("Loaded precomputed data")
             return True
         except FileNotFoundError:
             return False

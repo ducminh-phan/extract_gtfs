@@ -32,7 +32,7 @@ def main():
     args = parse_args()
     setup(args)
 
-    CalendarDates.extract()
+    CalendarDates.get_dates()
 
 
 if __name__ == "__main__":

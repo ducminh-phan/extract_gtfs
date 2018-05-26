@@ -74,6 +74,7 @@ class CalendarDates(metaclass=LogAttribute):
         cls.date_to_trips = d2t
 
     @classmethod
+    @load_attr({Data: ['dates', 'date_to_trips']})
     def get_dates(cls):
         cls.extract()
 

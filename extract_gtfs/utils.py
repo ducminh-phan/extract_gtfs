@@ -110,16 +110,35 @@ class LogAttribute(type):
         return super().__new__(mcs, name, bases, namespace)
 
 
-def load_attr(attr_name):
+def load_attr(*attr_names):
     """
-    Return the decorator to check if the attribute was already computed.
-    If not, compute and set the attribute using the decorated (class)method
+    Return the decorator to check if the attributes was already computed.
+    If not, compute and set the attribute using the decorated (class)method.
+
+    attr_names can be the strings representing the name of the attributes
+    in the current class; or it can be a single dict, this dict maps the classes
+    to the attributes which are to be computed by the decorated class method.
+
+    In the latter case, to add the attributes name from the current class,
+    the key should be None.
     """
 
     def decorator(func):
         @wraps(func)
         def wrapper(cls, *args, **kwargs):
-            val = getattr(cls, attr_name)
+            if len(attr_names) == 1 and isinstance(attr_names[0], dict):
+                val = True
+                for cls_, names_ in attr_names[0].items():
+                    if val is None:
+                        break
+
+                    # Map the key None to the current class
+                    if cls_ is None:
+                        cls_ = cls
+
+                    val = val and (all(getattr(cls_, name) is not None for name in names_) or None)
+            else:
+                val = all(getattr(cls, name) is not None for name in attr_names) or None
 
             if val is None:
                 func(cls, *args, **kwargs)

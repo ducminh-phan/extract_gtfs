@@ -1,5 +1,6 @@
 from datetime import date
 
+import pandas as pd
 from tqdm import tqdm
 
 from .data import Data
@@ -36,7 +37,18 @@ def date_to_str(date_obj):
 
 
 class ExtractDate(metaclass=LogAttribute):
-    __slots__ = ('date_to_services', 'date_to_trips')
+    __slots__ = ('calendar_dates_df', 'trips_df',
+                 'date_to_services', 'date_to_trips')
+
+    @classmethod
+    def setup(cls):
+        print("Reading the GTFS files...")
+
+        cls.calendar_dates_df = pd.read_csv('{}/calendar_dates.txt'.format(Data.in_folder), dtype=str,
+                                            usecols=['service_id', 'date'])
+
+        cls.trips_df = pd.read_csv('{}/trips.txt'.format(Data.in_folder), dtype=str,
+                                   usecols=['service_id', 'trip_id'])
 
     @classmethod
     @load_attr('date_to_services')
@@ -44,8 +56,8 @@ class ExtractDate(metaclass=LogAttribute):
         print("\nFinding the services available for each day...")
 
         d2s = {}
-        date_groups = Data.calendar_dates_df.groupby('date')
-        for date_str in tqdm(Data.calendar_dates_df['date'].unique()):
+        date_groups = cls.calendar_dates_df.groupby('date')
+        for date_str in tqdm(cls.calendar_dates_df['date'].unique()):
             df = date_groups.get_group(date_str)
             d2s[date_str] = set(df['service_id'])
 
@@ -57,7 +69,7 @@ class ExtractDate(metaclass=LogAttribute):
         print("\nFinding the trips available for each day...")
 
         d2t = {}
-        service_groups = Data.trips_df.groupby('service_id')
+        service_groups = cls.trips_df.groupby('service_id')
         for date_str, services in tqdm(cls.date_to_services.items()):
             trips_set = set()
             for service in services:
@@ -71,6 +83,7 @@ class ExtractDate(metaclass=LogAttribute):
     @classmethod
     @load_attr({Data: ['date', 'trips']})
     def extract(cls):
+        cls.setup()
         cls.get_services_by_date()
         cls.get_trips_by_date()
 

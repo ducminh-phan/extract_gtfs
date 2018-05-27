@@ -6,7 +6,8 @@ from .utils import measure_time, LogAttribute
 class Data(metaclass=LogAttribute):
     __slots__ = ('in_folder', 'out_folder',
                  'dates', 'date_to_trips',
-                 'calendar_dates_df', 'trips_df')
+                 'calendar_dates_df', 'trips_df',
+                 'stop_times')
 
 
 @measure_time
@@ -15,10 +16,8 @@ def setup(args):
     Data.in_folder = args.folder
     Data.out_folder = args.output
 
-    calendar_dates_df = pd.read_csv('{}/calendar_dates.txt'.format(Data.in_folder), dtype=str)
-    calendar_dates_df = calendar_dates_df.drop(['exception_type'], axis=1)
-    Data.calendar_dates_df = calendar_dates_df
+    Data.calendar_dates_df = pd.read_csv('{}/calendar_dates.txt'.format(Data.in_folder), dtype=str,
+                                         usecols=['service_id', 'date'])
 
-    trips_df = pd.read_csv('{}/trips.txt'.format(Data.in_folder), dtype=str)
-    trips_df = trips_df.drop(['trip_headsign', 'trip_short_name', 'direction_id', 'shape_id'], axis=1)
-    Data.trips_df = trips_df
+    Data.trips_df = pd.read_csv('{}/trips.txt'.format(Data.in_folder), dtype=str,
+                                usecols=['service_id', 'trip_id'])

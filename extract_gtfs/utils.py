@@ -128,7 +128,7 @@ def load_attr(*attr_names):
         def wrapper(cls, *args, **kwargs):
             if len(attr_names) == 1 and isinstance(attr_names[0], dict):
                 val = True
-                for cls_, names_ in attr_names[0].items():
+                for cls_, names in attr_names[0].items():
                     if val is None:
                         break
 
@@ -136,7 +136,10 @@ def load_attr(*attr_names):
                     if cls_ is None:
                         cls_ = cls
 
-                    val = val and (all(getattr(cls_, name) is not None for name in names_) or None)
+                    if isinstance(names, str):
+                        names = [names]
+
+                    val = val and (all(getattr(cls_, name) is not None for name in names) or None)
             else:
                 val = all(getattr(cls, name) is not None for name in attr_names) or None
 

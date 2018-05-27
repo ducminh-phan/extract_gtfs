@@ -5,7 +5,7 @@ from .utils import measure_time, LogAttribute
 
 class Data(metaclass=LogAttribute):
     __slots__ = ('in_folder', 'out_folder',
-                 'dates', 'date_to_trips',
+                 'date', 'trips',
                  'calendar_dates_df', 'trips_df',
                  'stop_times')
 

@@ -16,15 +16,12 @@ class SplitTrip(metaclass=LogAttribute):
     def extract_stop_times(cls):
         print('\nExtracting the selected dates from the timetable...')
 
-        # Combine the trips from the two selected dates
-        all_trips = set.union(*Data.date_to_trips.values())
-
         stop_times_df = pd.read_csv('{}/stop_times.txt'.format(Data.in_folder),
                                     usecols=['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence'],
                                     dtype={'trip_id': str, 'arrival_time': str, 'departure_time': str,
                                            'stop_id': str, 'stop_sequence': np.uint16})
 
-        stop_times_filtered = stop_times_df[stop_times_df['trip_id'].isin(all_trips)]
+        stop_times_filtered = stop_times_df[stop_times_df['trip_id'].isin(Data.trips)]
 
         # Sort by stop_sequence to make sure the stop sequences are in correct order
         stop_times_filtered = stop_times_filtered.sort_values(by=['trip_id', 'stop_sequence'])

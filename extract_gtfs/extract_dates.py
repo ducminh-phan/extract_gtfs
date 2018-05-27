@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 
 from tqdm import tqdm
 
@@ -69,30 +69,15 @@ class ExtractDate(metaclass=LogAttribute):
         cls.date_to_trips = d2t
 
     @classmethod
-    @load_attr({Data: ['dates', 'date_to_trips']})
+    @load_attr({Data: ['date', 'trips']})
     def extract(cls):
         cls.get_services_by_date()
         cls.get_trips_by_date()
 
-        print("\nFinding the two consecutive busiest days...")
+        print("\nFinding the busiest day in the timetable...")
 
-        first_day = None
-        second_day = None
-        max_trip_count = 0
+        # Iterate over the tuples (date, trips) and find the trips set of max size
+        selected_date, trips = max(cls.date_to_trips.items(), key=lambda x: len(x[1]))
 
-        for date_str in tqdm(cls.date_to_trips):
-            # Get the string representing the next date
-            date_obj = str_to_date(date_str)
-            next_date_str = date_to_str(date_obj + timedelta(1))
-
-            # If the next date is also in the timetable, find the total number of trips
-            if next_date_str in cls.date_to_trips:
-                trips_set = cls.date_to_trips[date_str] | cls.date_to_trips[next_date_str]
-
-                if len(trips_set) > max_trip_count:
-                    first_day = date_str
-                    second_day = next_date_str
-                    max_trip_count = len(trips_set)
-
-        Data.dates = (first_day, second_day)
-        Data.date_to_trips = {d: cls.date_to_trips[d] for d in Data.dates}
+        Data.date = selected_date
+        Data.trips = trips

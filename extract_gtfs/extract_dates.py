@@ -1,10 +1,9 @@
 from datetime import date
 
-import pandas as pd
 from tqdm import tqdm
 
 from .data import Data
-from .utils import LogAttribute, load_attr
+from .utils import LogAttribute, load_attr, read_csv
 
 
 def str_to_date(date_string):
@@ -44,11 +43,11 @@ class ExtractDate(metaclass=LogAttribute):
     def setup(cls):
         print("Reading the GTFS files...")
 
-        cls.calendar_dates_df = pd.read_csv('{}/calendar_dates.txt'.format(Data.in_folder), dtype=str,
-                                            usecols=['service_id', 'date'])
+        cls.calendar_dates_df = read_csv('calendar_dates', dtype=str,
+                                         usecols=['service_id', 'date'])
 
-        cls.trips_df = pd.read_csv('{}/trips.txt'.format(Data.in_folder), dtype=str,
-                                   usecols=['service_id', 'trip_id'])
+        cls.trips_df = read_csv('trips.txt', dtype=str,
+                                usecols=['service_id', 'trip_id'])
 
     @classmethod
     @load_attr('date_to_services')

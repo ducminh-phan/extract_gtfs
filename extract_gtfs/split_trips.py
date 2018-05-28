@@ -1,11 +1,9 @@
 from collections import defaultdict
 
-import numpy as np
-import pandas as pd
 from tqdm import tqdm
 
 from .data import Data
-from .utils import LogAttribute, load_attr
+from .utils import LogAttribute, load_attr, read_csv
 
 
 def hms_to_s(s):
@@ -26,10 +24,10 @@ class SplitTrip(metaclass=LogAttribute):
     def extract_stop_times(cls):
         print('\nExtracting the selected dates from the timetable...')
 
-        stop_times_df = pd.read_csv('{}/stop_times.txt'.format(Data.in_folder),
-                                    usecols=['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence'],
-                                    dtype={'trip_id': str, 'arrival_time': str, 'departure_time': str,
-                                           'stop_id': str, 'stop_sequence': np.uint16})
+        stop_times_df = read_csv('stop_times',
+                                 usecols=['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence'],
+                                 dtype={'trip_id': str, 'arrival_time': str, 'departure_time': str,
+                                        'stop_id': str, 'stop_sequence': int})
 
         # Keep only the events associating with the selected trips
         stop_times_filtered = stop_times_df[stop_times_df['trip_id'].isin(Data.trips)]

@@ -4,6 +4,8 @@ import pickle
 from functools import wraps
 from time import time
 
+import pandas as pd
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Extract information from GTFS files "
@@ -27,6 +29,10 @@ def check_args(parser, args):
         parser.error("The input and output folders' names must be different")
 
     return args
+
+
+def read_csv(file_name, **kwargs):
+    return pd.read_csv('{}/{}.txt'.format(parse_args().folder, file_name), **kwargs)
 
 
 def measure_time(func):

@@ -9,7 +9,7 @@ def main():
     setup(args)
 
     ExtractDate.extract()
-    SplitTrip.sort_trip()
+    SplitTrip.split_by_time()
 
 
 if __name__ == "__main__":

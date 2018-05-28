@@ -18,7 +18,8 @@ def hms_to_s(s):
 
 
 class SplitTrip(metaclass=LogAttribute):
-    __slots__ = ('stop_times_grouped', 'trip_groups_by_pattern', 'trip_groups_sorted', 'trip_groups')
+    __slots__ = ('stop_times_grouped', 'trip_groups_by_pattern', 'trip_groups_sorted',
+                 'trip_to_deps', 'trip_groups')
 
     @classmethod
     @load_attr({Data: 'stop_times'})
@@ -62,16 +63,60 @@ class SplitTrip(metaclass=LogAttribute):
         cls.trip_groups_by_pattern = list(pattern_to_trips.values())
 
     @classmethod
-    @load_attr('trip_groups_sorted')
+    @load_attr('trip_to_deps', 'trip_groups_sorted')
     def sort_trip(cls):
         cls.split_by_pattern()
 
         print('\nGetting the departure times for every trip...')
 
-        trip_to_deps = {trip: group['departure_time'].tolist()
-                        for trip, group in tqdm(cls.stop_times_grouped)}
+        cls.trip_to_deps = {trip: group['departure_time'].tolist()
+                            for trip, group in tqdm(cls.stop_times_grouped)}
 
         print('\nSorting the trips in each stop pattern by the departure time at the first stop...')
 
-        cls.trip_groups_sorted = [sorted(gr, key=lambda t: trip_to_deps[t][0])
+        cls.trip_groups_sorted = [sorted(gr, key=lambda t: cls.trip_to_deps[t][0])
                                   for gr in tqdm(cls.trip_groups_by_pattern)]
+
+    @classmethod
+    @load_attr('trip_groups')
+    def split_by_time(cls):
+        """
+        In each trip group, the following two conditions need to be satisfied:
+        1. Every trip having the same stop pattern, this is already guaranteed
+           by the classmethod split_by_pattern
+        2. Every column of the timetable belonging to the route (trip group) are in
+           ascending order.
+
+        This classmethod splits each group in cls.trip_groups_sorted, if necessary,
+        into smaller groups to guarantee the second condition.
+        """
+        cls.sort_trip()
+
+        print('\nCollecting the trips preserving the stop times order...')
+
+        # The final trip groups, for which the two conditions above are guaranteed
+        trip_groups = []
+
+        for trip_group in tqdm(cls.trip_groups_sorted):
+            current_groups = []
+
+            for trip in trip_group:
+                # Check if we can insert this trip into one of the current groups
+                for group in current_groups:
+                    # Get the last trip in this group
+                    last_trip = group[-1]
+
+                    # Add this trip to this group if all the departure times are at least
+                    # those of the last trip in this group, element-wise
+                    if all(last_dep <= dep
+                           for last_dep, dep in zip(cls.trip_to_deps[last_trip], cls.trip_to_deps[trip])):
+                        group.append(trip)
+                        break
+                else:
+                    # This trip cannot be added to any of the current groups,
+                    # we need to create a new group
+                    current_groups.append([trip])
+
+            trip_groups.extend(current_groups)
+
+        cls.trip_groups = trip_groups

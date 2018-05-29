@@ -1,4 +1,5 @@
 import networkx as nx
+import pandas as pd
 
 from .data import Data
 from .utils import LogAttribute, load_attr, read_csv
@@ -30,5 +31,7 @@ class ExtractTransfer(metaclass=LogAttribute):
 
         # If u and v are the same node, the path length will be 0. In that case,
         # we need to take the transfer time from the original graph
-        Data.transfers = [[u, v, dijkstra_lengths[u][v] if u != v else data['min_transfer_time']]
-                          for u, v, data in gt.edges(data=True)]
+        transfers = [[u, v, dijkstra_lengths[u][v] if u != v else data['min_transfer_time']]
+                     for u, v, data in gt.edges(data=True)]
+
+        Data.transfers = pd.DataFrame(transfers, columns=['from_stop_id', 'to_stop_id', 'min_transfer_time'])

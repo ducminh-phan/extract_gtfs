@@ -11,7 +11,7 @@ def main():
     setup(args)
 
     ExtractDate.extract()
-    SplitTrip.split_by_time()
+    SplitTrip.split()
     ExtractTransfer.extract()
     CollectRoute.collect()
 

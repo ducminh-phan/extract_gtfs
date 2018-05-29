@@ -47,8 +47,6 @@ class SplitTrip(metaclass=LogAttribute):
     @classmethod
     @load_attr('stop_times_grouped', 'trip_groups_by_pattern')
     def split_by_pattern(cls):
-        cls.extract_stop_times()
-
         print('\nCollecting the stop patterns...')
 
         cls.stop_times_grouped = Data.stop_times.groupby('trip_id')
@@ -63,8 +61,6 @@ class SplitTrip(metaclass=LogAttribute):
     @classmethod
     @load_attr('trip_to_deps', 'trip_groups_sorted')
     def sort_trip(cls):
-        cls.split_by_pattern()
-
         print('\nGetting the departure times for every trip...')
 
         cls.trip_to_deps = {trip: group['departure_time'].tolist()
@@ -88,8 +84,6 @@ class SplitTrip(metaclass=LogAttribute):
         This classmethod splits each group in cls.trip_groups_sorted, if necessary,
         into smaller groups to guarantee the second condition.
         """
-        cls.sort_trip()
-
         print('\nCollecting the trips preserving the stop times order...')
 
         # The final trip groups, for which the two conditions above are guaranteed
@@ -118,3 +112,11 @@ class SplitTrip(metaclass=LogAttribute):
             trip_groups.extend(current_groups)
 
         cls.trip_groups = trip_groups
+
+    @classmethod
+    def split(cls):
+        cls.extract_stop_times()
+
+        cls.split_by_pattern()
+        cls.sort_trip()
+        cls.split_by_time()

@@ -1,3 +1,4 @@
+from .collect_routes import CollectRoute
 from .data import setup
 from .extract_dates import ExtractDate
 from .split_trips import SplitTrip
@@ -12,6 +13,7 @@ def main():
     ExtractDate.extract()
     SplitTrip.split_by_time()
     ExtractTransfer.extract()
+    CollectRoute.collect()
 
 
 if __name__ == "__main__":

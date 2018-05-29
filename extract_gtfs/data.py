@@ -4,7 +4,7 @@ from .utils import LogAttribute
 class Data(metaclass=LogAttribute):
     __slots__ = ('in_folder', 'out_folder',
                  'selected_date', 'selected_trips',
-                 'stop_times', 'transfers')
+                 'stop_times', 'transfers', 'trips', 'stop_routes')
 
 
 def setup(args):

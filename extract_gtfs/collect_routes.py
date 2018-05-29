@@ -45,7 +45,8 @@ class CollectRoute(metaclass=LogAttribute):
                 stop_routes[stop].add(route)
 
         # Convert the dict (stop_id -> set of routes) to a DataFrame
-        Data.stop_routes = pd.DataFrame([[k, vi] for k, v in stop_routes.items() for vi in v])
+        Data.stop_routes = pd.DataFrame([[k, vi] for k, v in stop_routes.items() for vi in v],
+                                        columns=['stop_id', 'route_id'])
 
     @classmethod
     def collect(cls):

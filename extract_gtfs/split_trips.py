@@ -22,7 +22,7 @@ class SplitTrip(metaclass=LogAttribute):
     @classmethod
     @load_attr({Data: 'stop_times'})
     def extract_stop_times(cls):
-        print('\nExtracting the selected dates from the timetable...')
+        print('\nExtracting the selected date from the timetable...')
 
         stop_times_df = read_csv('stop_times.txt',
                                  usecols=['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence'],

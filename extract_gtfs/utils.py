@@ -42,7 +42,7 @@ def measure_time(func):
         res = func(*args, **kwargs)
 
         elapsed_time = time() - start_time
-        print("Time elapsed:", round(elapsed_time, 3), 'seconds')
+        print('\nTime elapsed:', round(elapsed_time, 3), 'seconds')
         print('-' * 50)
 
         return res

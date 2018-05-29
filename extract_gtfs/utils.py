@@ -32,7 +32,7 @@ def check_args(parser, args):
 
 
 def read_csv(file_name, **kwargs):
-    return pd.read_csv('{}/{}.txt'.format(parse_args().folder, file_name), **kwargs)
+    return pd.read_csv('{}/{}'.format(parse_args().folder, file_name), **kwargs)
 
 
 def measure_time(func):

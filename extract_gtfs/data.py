@@ -3,8 +3,8 @@ from .utils import LogAttribute
 
 class Data(metaclass=LogAttribute):
     __slots__ = ('in_folder', 'out_folder',
-                 'date', 'trips', 'stop_times',
-                 'transfers')
+                 'selected_date', 'selected_trips',
+                 'stop_times', 'transfers')
 
 
 def setup(args):

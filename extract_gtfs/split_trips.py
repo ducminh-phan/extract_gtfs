@@ -24,13 +24,13 @@ class SplitTrip(metaclass=LogAttribute):
     def extract_stop_times(cls):
         print('\nExtracting the selected dates from the timetable...')
 
-        stop_times_df = read_csv('stop_times',
+        stop_times_df = read_csv('stop_times.txt',
                                  usecols=['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence'],
                                  dtype={'trip_id': str, 'arrival_time': str, 'departure_time': str,
                                         'stop_id': str, 'stop_sequence': int})
 
         # Keep only the events associating with the selected trips
-        stop_times_filtered = stop_times_df[stop_times_df['trip_id'].isin(Data.trips)]
+        stop_times_filtered = stop_times_df[stop_times_df['trip_id'].isin(Data.selected_trips)]
 
         # Remove events containing NaN
         stop_times_filtered = stop_times_filtered.dropna()

@@ -43,7 +43,7 @@ class ExtractDate(metaclass=LogAttribute):
     def setup(cls):
         print("Reading the GTFS files...")
 
-        cls.calendar_dates_df = read_csv('calendar_dates', dtype=str,
+        cls.calendar_dates_df = read_csv('calendar_dates.txt', dtype=str,
                                          usecols=['service_id', 'date'])
 
         cls.trips_df = read_csv('trips.txt', dtype=str,
@@ -80,7 +80,7 @@ class ExtractDate(metaclass=LogAttribute):
         cls.date_to_trips = d2t
 
     @classmethod
-    @load_attr({Data: ['date', 'trips']})
+    @load_attr({Data: ['selected_date', 'selected_trips']})
     def extract(cls):
         cls.setup()
         cls.get_services_by_date()
@@ -91,5 +91,5 @@ class ExtractDate(metaclass=LogAttribute):
         # Iterate over the tuples (date, trips) and find the trips set of max size
         selected_date, trips = max(cls.date_to_trips.items(), key=lambda x: len(x[1]))
 
-        Data.date = selected_date
-        Data.trips = trips
+        Data.selected_date = selected_date
+        Data.selected_trips = trips

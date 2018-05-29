@@ -10,7 +10,7 @@ class ExtractTransfer(metaclass=LogAttribute):
     @classmethod
     @load_attr({Data: 'transfers'})
     def extract(cls):
-        transfers_df = read_csv('transfers',
+        transfers_df = read_csv('transfers.txt',
                                 usecols=['from_stop_id', 'to_stop_id', 'min_transfer_time'],
                                 dtype={'from_stop_id': str, 'to_stop_id': str})
 

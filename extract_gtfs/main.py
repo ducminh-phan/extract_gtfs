@@ -1,4 +1,7 @@
 import os
+import shutil
+
+import pandas as pd
 
 from .collect_routes import CollectRoute
 from .data import setup, Data
@@ -6,11 +9,17 @@ from .extract_dates import ExtractDate
 from .relabel import Relabel
 from .split_trips import SplitTrip
 from .transfers import ExtractTransfer
-from .utils import parse_args, measure_time
+from .utils import parse_args, measure_time, query_yes_no
+
+
+def main():
+    extract()
+    summary()
+    clean_up()
 
 
 @measure_time
-def main():
+def extract():
     args = parse_args()
     setup(args)
 
@@ -45,3 +54,22 @@ def summary():
     print('\t{} transfers'.format(Data.stats['n_transfers']))
 
     print('-' * 50)
+
+
+def clean_up():
+    if query_yes_no('Delete the temporary files?'):
+        shutil.rmtree('{}_tmp'.format(Data.in_folder))
+
+    if query_yes_no('Save the labels?'):
+        directory = '{}_labels'.format(Data.in_folder)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        # Create the DataFrames for the labels, sorted by the newly assigned labels,
+        # then save them to the label folder
+        pd.DataFrame(sorted(Relabel.trip_label.items(), key=lambda x: x[1])).to_csv(
+            '{}/trip_label.csv'.format(directory), index=False, header=['old_id', 'new_id']
+        )
+        pd.DataFrame(sorted(Relabel.stop_label.items(), key=lambda x: x[1])).to_csv(
+            '{}/stop_label.csv'.format(directory), index=False, header=['old_id', 'new_id']
+        )

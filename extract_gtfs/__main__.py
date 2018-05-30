@@ -1,4 +1,3 @@
-from .main import main, summary
+from .main import main
 
 main()
-summary()

@@ -2,8 +2,8 @@ from collections import defaultdict
 
 from tqdm import tqdm
 
-from .data import Data
-from .utils import LogAttribute, load_attr, read_csv
+from extract_gtfs.data import Data
+from extract_gtfs.utils import LogAttribute, load_attr, read_csv
 
 
 def hms_to_s(s):

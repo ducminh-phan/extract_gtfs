@@ -1,8 +1,8 @@
 import networkx as nx
 import pandas as pd
 
-from .data import Data
-from .utils import LogAttribute, load_attr, read_csv
+from extract_gtfs.data import Data
+from extract_gtfs.utils import LogAttribute, load_attr, read_csv
 
 
 class ExtractTransfer(metaclass=LogAttribute):

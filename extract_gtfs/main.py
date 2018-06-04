@@ -3,14 +3,14 @@ import shutil
 
 import pandas as pd
 
-from .collect_routes import CollectRoute
-from .data import setup, Data
-from .extract_dates import ExtractDate
-from .relabel import Relabel
-from .split_trips import SplitTrip
-from .transfers import ExtractTransfer
-from .utils import parse_args, measure_time, query_yes_no
-from .walking_graph import ExtractCoordinates
+from extract_gtfs.collect_routes import CollectRoute
+from extract_gtfs.data import setup, Data
+from extract_gtfs.extract_dates import ExtractDate
+from extract_gtfs.relabel import Relabel
+from extract_gtfs.split_trips import SplitTrip
+from extract_gtfs.transfers import ExtractTransfer
+from extract_gtfs.utils import parse_args, measure_time, query_yes_no
+from extract_gtfs.walking_graph import ExtractCoordinates
 
 
 def main():

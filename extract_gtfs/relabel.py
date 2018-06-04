@@ -1,5 +1,5 @@
-from .data import Data
-from .walking_graph import ExtractCoordinates
+from extract_gtfs.data import Data
+from extract_gtfs.walking_graph import ExtractCoordinates
 
 
 class Relabel:

@@ -1,4 +1,4 @@
-from .utils import LogAttribute
+from extract_gtfs.utils import LogAttribute
 
 
 class Data(metaclass=LogAttribute):

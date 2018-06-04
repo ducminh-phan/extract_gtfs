@@ -3,9 +3,9 @@ from collections import defaultdict
 import pandas as pd
 from tqdm import tqdm
 
-from .data import Data
-from .split_trips import SplitTrip
-from .utils import LogAttribute, load_attr
+from extract_gtfs.data import Data
+from extract_gtfs.split_trips import SplitTrip
+from extract_gtfs.utils import LogAttribute, load_attr
 
 
 class CollectRoute(metaclass=LogAttribute):

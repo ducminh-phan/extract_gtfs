@@ -1,5 +1,5 @@
-from .data import Data
-from .utils import read_csv
+from extract_gtfs.data import Data
+from extract_gtfs.utils import read_csv
 
 
 def coor_to_int(coor):

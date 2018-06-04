@@ -2,8 +2,8 @@ from datetime import date
 
 from tqdm import tqdm
 
-from .data import Data
-from .utils import LogAttribute, load_attr, read_csv
+from extract_gtfs.data import Data
+from extract_gtfs.utils import LogAttribute, load_attr, read_csv
 
 
 def str_to_date(date_string):

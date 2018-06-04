@@ -8,13 +8,16 @@ import pandas as pd
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Extract information from GTFS files "
+    parser = argparse.ArgumentParser(prog="python3 -m extract_gtfs",
+                                     description="Extract information from GTFS files "
                                                  "to use with RAPTOR algorithm")
 
     parser.add_argument("folder", help="The folder containing the GTFS files to extract")
     parser.add_argument("-o", "--output", default=None, help="The name of the output folder. "
                                                              "The default name is obtained by appending "
                                                              "'_out' to the input folder name")
+    parser.add_argument('--no-relabel', dest='relabel', action='store_false',
+                        help="Do not relabel the stops and trips.")
 
     args = parser.parse_args()
     args = check_args(parser, args)

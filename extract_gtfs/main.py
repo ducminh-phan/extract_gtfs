@@ -13,22 +13,24 @@ from .utils import parse_args, measure_time, query_yes_no
 
 
 def main():
-    extract()
-    summary()
-    clean_up()
-
-
-@measure_time
-def extract():
     args = parse_args()
     setup(args)
 
+    extract(args)
+    summary()
+    clean_up(args)
+
+
+@measure_time
+def extract(args):
     ExtractDate.extract()
     SplitTrip.split()
     ExtractTransfer.extract()
     CollectRoute.collect()
-    Relabel.create_label()
-    Relabel.relabel()
+
+    if args.relabel:
+        Relabel.create_label()
+        Relabel.relabel()
 
     write_files()
 
@@ -46,21 +48,27 @@ def write_files():
 
 
 def summary():
+    n_trips = len(Data.trips['trip_id'].unique())
+    n_routes = len(Data.trips['route_id'].unique())
+    n_events = len(Data.stop_times)
+    n_stops = len(Data.stop_times['stop_id'].unique())
+    n_transfers = len(Data.transfers)
+
     print('Summary:')
-    print('\t{} routes'.format(Data.stats['n_routes']))
-    print('\t{} trips'.format(Data.stats['n_trips']))
-    print('\t{} stops'.format(Data.stats['n_stops']))
-    print('\t{} events'.format(Data.stats['n_events']))
-    print('\t{} transfers'.format(Data.stats['n_transfers']))
+    print('\t{} routes'.format(n_routes))
+    print('\t{} trips'.format(n_trips))
+    print('\t{} stops'.format(n_stops))
+    print('\t{} events'.format(n_events))
+    print('\t{} transfers'.format(n_transfers))
 
     print('-' * 50)
 
 
-def clean_up():
+def clean_up(args):
     if query_yes_no('Delete the temporary files?'):
         shutil.rmtree('{}_tmp'.format(Data.in_folder))
 
-    if query_yes_no('Save the labels?'):
+    if args.relabel and query_yes_no('Save the labels?'):
         directory = '{}_labels'.format(Data.in_folder)
         if not os.path.exists(directory):
             os.makedirs(directory)

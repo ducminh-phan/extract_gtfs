@@ -46,8 +46,6 @@ class Relabel:
         trips['trip_id'] = trips['trip_id'].map(cls.trip_label)
 
         Data.trips = trips
-        Data.stats['n_trips'] = len(trips['trip_id'].unique())
-        Data.stats['n_routes'] = len(trips['route_id'].unique())
 
     @classmethod
     def relabel_stop_times(cls):
@@ -59,8 +57,6 @@ class Relabel:
         stop_times['stop_id'] = stop_times['stop_id'].map(cls.stop_label)
 
         Data.stop_times = stop_times
-        Data.stats['n_events'] = len(stop_times)
-        Data.stats['n_stops'] = len(stop_times['stop_id'].unique())
 
     @classmethod
     def relabel_transfers(cls):
@@ -72,7 +68,6 @@ class Relabel:
         transfers['to_stop_id'] = transfers['to_stop_id'].map(cls.stop_label)
 
         Data.transfers = transfers
-        Data.stats['n_transfers'] = len(transfers)
 
     @classmethod
     def relabel_stop_routes(cls):

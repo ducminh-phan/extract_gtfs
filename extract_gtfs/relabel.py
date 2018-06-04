@@ -1,4 +1,5 @@
 from .data import Data
+from .walking_graph import ExtractCoordinates
 
 
 class Relabel:
@@ -80,8 +81,19 @@ class Relabel:
         Data.stop_routes = stop_routes
 
     @classmethod
+    def relabel_coordinates(cls):
+        print('\nRelabelling the coordinates table...')
+
+        table = ExtractCoordinates.coordinates_table
+
+        table['stop_id'] = table['stop_id'].map(cls.stop_label)
+
+        ExtractCoordinates.coordinates_table = table
+
+    @classmethod
     def relabel(cls):
         cls.relabel_trips()
         cls.relabel_stop_times()
         cls.relabel_transfers()
         cls.relabel_stop_routes()
+        cls.relabel_coordinates()

@@ -10,6 +10,7 @@ from .relabel import Relabel
 from .split_trips import SplitTrip
 from .transfers import ExtractTransfer
 from .utils import parse_args, measure_time, query_yes_no
+from .walking_graph import ExtractCoordinates
 
 
 def main():
@@ -27,6 +28,7 @@ def extract(args):
     SplitTrip.split()
     ExtractTransfer.extract()
     CollectRoute.collect()
+    ExtractCoordinates.extract()
 
     if args.relabel:
         Relabel.create_label()
@@ -45,6 +47,8 @@ def write_files():
     for attr in ('stop_times', 'transfers', 'trips', 'stop_routes'):
         df = getattr(Data, attr)
         df.to_csv('{}/{}.csv.gz'.format(Data.out_folder, attr), index=False, compression='gzip')
+
+    ExtractCoordinates.write_table(Data.out_folder)
 
 
 def summary():

@@ -2,9 +2,9 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <unordered_map>
+#include <limits>
+#include <map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "csv_reader.hpp"
@@ -14,7 +14,7 @@
 #endif
 
 using coordinates_t = std::pair<int64_t, int64_t>;
-using coor_table_t = std::unordered_map<int64_t, coordinates_t>;
+using coor_table_t = std::map<int64_t, coordinates_t>;
 using node_set_t = std::unordered_set<int64_t>;
 
 
@@ -62,6 +62,60 @@ double distance(coordinates_t p1, coordinates_t p2) {
 }
 
 
+void find_nearby_nodes(const coor_table_t* const stops_co,
+                      const coor_table_t* const nodes_co,
+                      const node_set_t* const nodes) {
+    std::ofstream identical_nodes {"merge_graph_tmp/identical_nodes.txt"};
+    std::ofstream nearby_nodes {"merge_graph_tmp/nearby_nodes.txt"};
+    std::ofstream closest_node {"merge_graph_tmp/closest_node.txt"};
+
+    for (const auto& stop: *stops_co) {
+        auto stop_id = stop.first;
+        auto stop_coor = stop.second;
+
+        auto min_dist = std::numeric_limits<double>::max();
+        int64_t closest_node_id {-1};
+
+        // The mapping distance -> node_id, keep 10 nodes closest to the stop,
+        // whose distances to the stop are between 50 and 1000.
+        std::map<double, int64_t> close_nodes_map;
+
+        for (const auto& node: *nodes_co) {
+            auto node_id = node.first;
+            auto node_coor = node.second;
+
+            auto dist = distance(stop_coor, node_coor);
+
+            if (dist < min_dist) {
+                min_dist = dist;
+                closest_node_id = node_id;
+            }
+            if (50 < dist && dist < 1000) {
+                if (close_nodes_map.size() < 5) {
+                    close_nodes_map.emplace(dist, node_id);
+                } else if (dist < std::prev(close_nodes_map.end())->first) {
+                    // Replace the last pair (distance, node_id), i.e., the pair with max distance
+                    // in the map, by the current pair if the current dist is smaller than the max
+                    // distance in close_nodes_map
+                    close_nodes_map.erase(std::prev(close_nodes_map.end()));
+                    close_nodes_map.emplace(dist, node_id);
+                }
+            }
+        }
+
+        if (min_dist <= 50) {
+            identical_nodes << stop_id << " " << closest_node_id << std::endl;
+        } else if (!close_nodes_map.empty()) {
+            for (const auto& pair: close_nodes_map) {
+                nearby_nodes << stop_id << " " << pair.second << " " << std::llround(pair.first) << std::endl;
+            }
+        } else {
+            closest_node << stop_id << " " << closest_node_id << " " << std::llround(min_dist) << std::endl;
+        }
+    }
+}
+
+
 int main(int argc, char* argv[]) {
     std::cout << "\nParsing the graph files..." << std::endl;
 
@@ -72,6 +126,8 @@ int main(int argc, char* argv[]) {
     std::cout << stops_co.size() << std::endl;
     std::cout << nodes_co.size() << std::endl;
     std::cout << nodes.size() << std::endl;
+
+    find_nearby_nodes(&stops_co, &nodes_co, &nodes);
 
     return 0;
 }

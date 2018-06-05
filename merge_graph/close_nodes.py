@@ -3,7 +3,7 @@ import subprocess
 
 def find_close_nodes(args):
     output_file = 'close_nodes'
-    compile_cmd = ['g++', '-Wall', '-O3',
+    compile_cmd = ['g++', '-std=c++11', '-Wall', '-O3',
                    'merge_graph/close_nodes.cpp', 'merge_graph/csv_reader.hpp',
                    '-o', output_file]
 

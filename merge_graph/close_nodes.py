@@ -1,11 +1,12 @@
+import os
 import subprocess
 
 
 def find_close_nodes(args):
+    path = os.path.join('.', 'merge_graph', 'cpp')
+    input_files = [os.path.join(path, file) for file in os.listdir(path)]
     output_file = 'close_nodes'
-    compile_cmd = ['g++', '-std=c++11', '-Wall', '-O3',
-                   'merge_graph/close_nodes.cpp', 'merge_graph/csv_reader.hpp',
-                   '-o', output_file]
+    compile_cmd = ['g++', '-std=c++11', '-Wall', '-O3'] + input_files + ['-o', output_file]
 
     print('Compiling C++...')
 

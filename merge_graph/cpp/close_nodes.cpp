@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "csv_reader.hpp"
+#include "progress_bar.hpp"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -69,6 +70,9 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
     std::ofstream nearby_nodes {"merge_graph_tmp/nearby_nodes.txt"};
     std::ofstream closest_node {"merge_graph_tmp/closest_node.txt"};
 
+    ProgressBar prog_bar {std::cout, stops_co->size(), 80u};
+    size_t count {0};
+
     for (const auto& stop: *stops_co) {
         auto stop_id = stop.first;
         auto stop_coor = stop.second;
@@ -112,6 +116,9 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
         } else {
             closest_node << stop_id << " " << closest_node_id << " " << std::llround(min_dist) << std::endl;
         }
+
+        ++count;
+        prog_bar.write(count);
     }
 }
 
@@ -123,9 +130,7 @@ int main(int argc, char* argv[]) {
     auto nodes_co = parse_coordinates(argv[2]);
     auto nodes = parse_nodes(argv[3]);
 
-    std::cout << stops_co.size() << std::endl;
-    std::cout << nodes_co.size() << std::endl;
-    std::cout << nodes.size() << std::endl;
+    std::cout << "\nFinding the nearby nodes for each stops..." << std::endl;
 
     find_nearby_nodes(&stops_co, &nodes_co, &nodes);
 

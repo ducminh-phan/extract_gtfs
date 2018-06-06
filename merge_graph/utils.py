@@ -25,11 +25,23 @@ def read_co_file(file_path):
     return df
 
 
+def write_co_file(df, file_path):
+    with open(file_path, 'w') as f:
+        for row in df.itertuples(index=False):
+            f.write('v ' + ' '.join(map(str, row)) + '\n')
+
+
 def read_gr_file(file_path):
     df = pd.read_csv(file_path, sep='\s+', header=None, usecols=[1, 2, 3])
     df.columns = ['source', 'target', 'weight']
 
     return df
+
+
+def write_gr_file(df, file_path):
+    with open(file_path, 'w') as f:
+        for row in df.itertuples(index=False):
+            f.write('a ' + ' '.join(map(str, row)) + '\n')
 
 
 R = 6371

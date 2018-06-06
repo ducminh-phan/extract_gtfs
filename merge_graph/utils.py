@@ -1,7 +1,8 @@
 import argparse
-from math import cos, pi, sqrt
 
 import pandas as pd
+
+from merge_graph.settings import config, data
 
 
 def parse_args():
@@ -44,19 +45,6 @@ def write_gr_file(df, file_path):
             f.write('a ' + ' '.join(map(str, row)) + '\n')
 
 
-R = 6371
-
-
-def distance(p1, p2):
-    """
-    Approximate the great-circle distance given the coordinates of two points.
-    Reference: https://www.movable-type.co.uk/scripts/latlong.html
-    """
-    x1, y1 = p1
-    x2, y2 = p2
-
-    phi_m = (y1 + y2) / 2 / 1000000
-    x = (x2 - x1) * cos(pi * phi_m / 180)
-    y = y2 - y1
-
-    return round(sqrt(x * x + y * y) * R * pi / 180 / 100.0)
+def write_data_files():
+    write_co_file(data.nodes_co, config.nodes_file)
+    write_gr_file(data.nodes_gr, config.graph_file)

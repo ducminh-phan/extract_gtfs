@@ -2,6 +2,7 @@ import os
 from types import SimpleNamespace
 
 config = SimpleNamespace()
+data = SimpleNamespace()
 
 
 def setup():

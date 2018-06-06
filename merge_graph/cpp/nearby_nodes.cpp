@@ -84,9 +84,8 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
         // whose distances to the stop are between 50 and 1000.
         std::map<double, int64_t> close_nodes_map;
 
-        for (const auto& node: *nodes_co) {
-            auto node_id = node.first;
-            auto node_coor = node.second;
+        for (const auto& node_id: *nodes) {
+            auto node_coor = nodes_co->at(node_id);
 
             auto dist = distance(stop_coor, node_coor);
 

@@ -66,9 +66,9 @@ double distance(coordinates_t p1, coordinates_t p2) {
 void find_nearby_nodes(const coor_table_t* const stops_co,
                       const coor_table_t* const nodes_co,
                       const node_set_t* const nodes) {
-    std::ofstream identical_nodes {"merge_graph_tmp/identical_nodes.txt"};
-    std::ofstream nearby_nodes {"merge_graph_tmp/nearby_nodes.txt"};
-    std::ofstream closest_node {"merge_graph_tmp/closest_node.txt"};
+    std::ofstream identical_nodes {"merge_graph_tmp/identical_nodes.csv"};
+    std::ofstream nearby_nodes {"merge_graph_tmp/nearby_nodes.csv"};
+    std::ofstream closest_node {"merge_graph_tmp/closest_node.csv"};
 
     ProgressBar prog_bar {std::cout, stops_co->size(), 80u};
     size_t count {0};
@@ -108,13 +108,13 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
         }
 
         if (min_dist <= 50) {
-            identical_nodes << stop_id << " " << closest_node_id << std::endl;
+            identical_nodes << stop_id << ',' << closest_node_id << std::endl;
         } else if (!close_nodes_map.empty()) {
             for (const auto& pair: close_nodes_map) {
-                nearby_nodes << stop_id << " " << pair.second << " " << std::llround(pair.first) << std::endl;
+                nearby_nodes << stop_id << ',' << pair.second << ',' << std::llround(pair.first) << std::endl;
             }
         } else {
-            closest_node << stop_id << " " << closest_node_id << " " << std::llround(min_dist) << std::endl;
+            closest_node << stop_id << ',' << closest_node_id << ',' << std::llround(min_dist) << std::endl;
         }
 
         ++count;

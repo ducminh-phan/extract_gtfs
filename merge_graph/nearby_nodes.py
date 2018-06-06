@@ -2,7 +2,7 @@ import os
 import subprocess
 
 
-def find_close_nodes(args):
+def find_nearby_nodes(args):
     path = os.path.join('.', 'merge_graph', 'cpp')
     input_files = [os.path.join(path, file) for file in os.listdir(path)]
     output_file = 'close_nodes'

@@ -1,6 +1,5 @@
-import os
-
-from merge_graph.close_nodes import find_close_nodes
+from merge_graph.nearby_nodes import find_nearby_nodes
+from merge_graph.settings import setup
 from merge_graph.utils import parse_args
 
 
@@ -9,9 +8,4 @@ def main():
 
     setup()
 
-    find_close_nodes(args)
-
-
-def setup():
-    if not os.path.exists('merge_graph_tmp'):
-        os.makedirs('merge_graph_tmp')
+    find_nearby_nodes(args)

@@ -68,7 +68,6 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
                       const node_set_t* const nodes) {
     std::ofstream identical_nodes {"merge_graph_tmp/identical_nodes.csv"};
     std::ofstream nearby_nodes {"merge_graph_tmp/nearby_nodes.csv"};
-    std::ofstream closest_node {"merge_graph_tmp/closest_node.csv"};
 
     ProgressBar prog_bar {std::cout, stops_co->size(), 80u};
     size_t count {0};
@@ -93,6 +92,7 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
                 min_dist = dist;
                 closest_node_id = node_id;
             }
+
             if (50 < dist && dist < 1000) {
                 if (close_nodes_map.size() < 5) {
                     close_nodes_map.emplace(dist, node_id);
@@ -113,7 +113,7 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
                 nearby_nodes << stop_id << ',' << pair.second << ',' << std::llround(pair.first) << std::endl;
             }
         } else {
-            closest_node << stop_id << ',' << closest_node_id << ',' << std::llround(min_dist) << std::endl;
+            nearby_nodes << stop_id << ',' << closest_node_id << ',' << std::llround(min_dist) << std::endl;
         }
 
         ++count;

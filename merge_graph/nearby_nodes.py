@@ -7,7 +7,7 @@ from merge_graph.settings import config
 def find_nearby_nodes(args):
     path = os.path.join('.', 'merge_graph', 'cpp')
     input_files = [os.path.join(path, file) for file in os.listdir(path)]
-    output_file = 'close_nodes'
+    output_file = os.path.join('.', 'close_nodes')
     compile_cmd = ['g++', '-std=c++11', '-Wall', '-O3'] + input_files + ['-o', output_file]
 
     print('\nCompiling C++...')

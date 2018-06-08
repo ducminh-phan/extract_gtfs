@@ -63,11 +63,14 @@ double distance(coordinates_t p1, coordinates_t p2) {
 }
 
 
-void find_nearby_nodes(const coor_table_t* const stops_co,
-                      const coor_table_t* const nodes_co,
-                      const node_set_t* const nodes) {
-    std::ofstream identical_nodes {"merge_graph_tmp/identical_nodes.csv"};
-    std::ofstream nearby_nodes {"merge_graph_tmp/nearby_nodes.csv"};
+void find_nearby_nodes(const std::string& tmp_folder,
+                       const std::string& out_folder,
+                       const coor_table_t* const stops_co,
+                       const coor_table_t* const nodes_co,
+                       const node_set_t* const nodes) {
+    std::ofstream identical_nodes {tmp_folder + "/identical_nodes.csv"};
+    std::ofstream nearby_nodes {tmp_folder + "/nearby_nodes.csv"};
+    std::ofstream isolated_stops {out_folder + "/isolated_stops.csv"};
 
     ProgressBar prog_bar {std::cout, stops_co->size(), 80u};
     size_t count {0};
@@ -113,7 +116,7 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
                 nearby_nodes << stop_id << ',' << pair.second << ',' << std::llround(pair.first) << std::endl;
             }
         } else {
-            nearby_nodes << stop_id << ',' << closest_node_id << ',' << std::llround(min_dist) << std::endl;
+            isolated_stops << stop_id << std::endl;
         }
 
         ++count;
@@ -125,13 +128,15 @@ void find_nearby_nodes(const coor_table_t* const stops_co,
 int main(int argc, char* argv[]) {
     std::cout << "\nParsing the graph files..." << std::endl;
 
-    auto stops_co = parse_coordinates(argv[1]);
-    auto nodes_co = parse_coordinates(argv[2]);
-    auto nodes = parse_nodes(argv[3]);
+    std::string tmp_folder {argv[1]};
+    std::string arg_folder {argv[2]};
+    auto stops_co = parse_coordinates(argv[3]);
+    auto nodes_co = parse_coordinates(argv[4]);
+    auto nodes = parse_nodes(argv[5]);
 
     std::cout << "\nFinding the nearby nodes for each stops..." << std::endl;
 
-    find_nearby_nodes(&stops_co, &nodes_co, &nodes);
+    find_nearby_nodes(tmp_folder, arg_folder, &stops_co, &nodes_co, &nodes);
 
     return 0;
 }

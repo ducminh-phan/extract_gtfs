@@ -16,6 +16,7 @@ def find_nearby_nodes(args):
     if proc.returncode:
         raise RuntimeError('Error occured when compiling C++ files')
 
-    proc = subprocess.run([output_file, args.stops_file, config.nodes_file, config.graph_file])
+    proc = subprocess.run([output_file, config.tmp_folder, config.out_folder,
+                           args.stops_file, config.nodes_file, config.graph_file])
     if proc.returncode:
         raise RuntimeError('Error occured when running compiled C++')

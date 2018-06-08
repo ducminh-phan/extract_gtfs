@@ -64,13 +64,12 @@ double distance(coordinates_t p1, coordinates_t p2) {
 
 
 void find_nearby_nodes(const std::string& tmp_folder,
-                       const std::string& out_folder,
                        const coor_table_t* const stops_co,
                        const coor_table_t* const nodes_co,
                        const node_set_t* const nodes) {
     std::ofstream identical_nodes {tmp_folder + "/identical_nodes.csv"};
     std::ofstream nearby_nodes {tmp_folder + "/nearby_nodes.csv"};
-    std::ofstream isolated_stops {out_folder + "/isolated_stops.csv"};
+    std::ofstream isolated_stops {tmp_folder + "/isolated_stops.csv"};
 
     ProgressBar prog_bar {std::cout, stops_co->size(), 80u};
     size_t count {0};
@@ -129,14 +128,13 @@ int main(int argc, char* argv[]) {
     std::cout << "\nParsing the graph files..." << std::endl;
 
     std::string tmp_folder {argv[1]};
-    std::string arg_folder {argv[2]};
-    auto stops_co = parse_coordinates(argv[3]);
-    auto nodes_co = parse_coordinates(argv[4]);
-    auto nodes = parse_nodes(argv[5]);
+    auto stops_co = parse_coordinates(argv[2]);
+    auto nodes_co = parse_coordinates(argv[3]);
+    auto nodes = parse_nodes(argv[4]);
 
     std::cout << "\nFinding the nearby nodes for each stops..." << std::endl;
 
-    find_nearby_nodes(tmp_folder, arg_folder, &stops_co, &nodes_co, &nodes);
+    find_nearby_nodes(tmp_folder, &stops_co, &nodes_co, &nodes);
 
     return 0;
 }

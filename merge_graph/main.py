@@ -2,6 +2,8 @@ import os
 import shutil
 from glob import glob
 
+import pandas as pd
+
 from merge_graph.connect_stops import MergeGraph
 from merge_graph.nearby_nodes import find_nearby_nodes
 from merge_graph.relabel import Relabel
@@ -29,6 +31,11 @@ def clean_up():
     for file_path in file_paths:
         if os.path.isfile(file_path) and os.access(file_path, os.X_OK):
             os.remove(file_path)
+
+    # Write the labels
+    pd.DataFrame(sorted(Relabel.label.items(), key=lambda x: x[1])).to_csv(
+        '{}/label.csv'.format(config.out_folder), index=False, header=['old_id', 'new_id']
+    )
 
     print()
     if query_yes_no('Delete the temporary files?'):

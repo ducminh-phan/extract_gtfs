@@ -2,12 +2,13 @@ import os
 import shutil
 from glob import glob
 
+import networkx as nx
 import pandas as pd
 
 from merge_graph.connect_stops import MergeGraph
 from merge_graph.nearby_nodes import find_nearby_nodes
 from merge_graph.relabel import Relabel
-from merge_graph.settings import setup, config
+from merge_graph.settings import setup, config, data
 from merge_graph.utils import parse_args, write_data_files, query_yes_no
 
 
@@ -20,8 +21,33 @@ def main():
     find_nearby_nodes(args)
     MergeGraph.merge()
 
+    stats()
     write_data_files()
     clean_up()
+
+
+def stats():
+    g = nx.from_pandas_edgelist(data.nodes_gr, create_using=nx.DiGraph())
+
+    with open('{}/isolated_stops.csv'.format(config.tmp_folder), 'r') as f:
+        num_isolated_stops = 0
+        for num_isolated_stops, _ in enumerate(f, 1):
+            pass
+
+    print()
+
+    print('Statistics of the walking graph after merging:')
+    print('\t', len(g.nodes), 'nodes')
+    print('\t', len(g.edges), 'edges')
+    print('\t', num_isolated_stops, 'isolated stops (not connected to the walking graph)')
+    print('\t', nx.number_strongly_connected_components(g), 'strongly connected components')
+
+    cc_sizes = sorted(map(len, nx.strongly_connected_components(g)), reverse=True)[:10]
+    print('\t', 'The size of {} largest components: {}'.format(
+        len(cc_sizes), ' '.join(map(str, cc_sizes))
+    ))
+
+    print()
 
 
 def clean_up():
@@ -37,6 +63,5 @@ def clean_up():
         '{}/label.csv'.format(config.out_folder), index=False, header=['old_id', 'new_id']
     )
 
-    print()
     if query_yes_no('Delete the temporary files?'):
         shutil.rmtree(config.tmp_folder)

@@ -1,21 +1,9 @@
 from merge_graph.settings import data
-from merge_graph.utils import read_co_file, read_gr_file, write_data_files
+from merge_graph.utils import read_co_file, write_data_files
 
 
 class Relabel:
     __slots__ = ('label',)
-
-    @classmethod
-    def filter_nodes(cls, args):
-        nodes_co = read_co_file(args.nodes_file)
-        nodes_gr = read_gr_file(args.graph_file)
-
-        # Filter the coordinates to keep only the nodes appear in the graph
-        nodes = set(nodes_gr['source']) | set(nodes_gr['target'])
-        nodes_co = nodes_co[nodes_co['node_id'].isin(nodes)]
-
-        data.nodes_co = nodes_co
-        data.nodes_gr = nodes_gr
 
     @classmethod
     def create_label(cls, args):
@@ -50,7 +38,6 @@ class Relabel:
     def relabel(cls, args):
         print('\nRelabeling the nodes in the graph files...')
 
-        cls.filter_nodes(args)
         cls.create_label(args)
 
         cls.relabel_co()

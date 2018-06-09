@@ -16,6 +16,7 @@ def main():
     args = parse_args()
 
     setup()
+    read_data(args)
 
     Relabel.relabel(args)
     find_nearby_nodes(args)
@@ -24,6 +25,26 @@ def main():
     stats()
     write_data_files()
     clean_up()
+
+
+def read_data(args):
+    from merge_graph.utils import read_co_file, read_gr_file
+
+    nodes_co = read_co_file(args.nodes_file)
+    nodes_gr = read_gr_file(args.graph_file)
+
+    # Filter the coordinates to keep only the nodes appear in the graph
+    nodes = set(nodes_gr['source']) | set(nodes_gr['target'])
+    nodes_co = nodes_co[nodes_co['node_id'].isin(nodes)]
+
+    # Remove self-loops
+    nodes_gr = nodes_gr[nodes_gr['source'] != nodes_gr['target']]
+
+    # Remove duplicated edges
+    nodes_gr = nodes_gr.drop_duplicates(subset=['source', 'target'], keep='last')
+
+    data.nodes_co = nodes_co
+    data.nodes_gr = nodes_gr
 
 
 def stats():

@@ -59,9 +59,6 @@ class MergeGraph:
 
         data.nodes_gr = nodes_gr.append(tmp_df)
 
-        # Remove self-loops
-        nodes_gr = nodes_gr[nodes_gr['source'] != nodes_gr['target']]
-
         data.nodes_gr = nodes_gr
         cls.merge_labels = merge_labels
 

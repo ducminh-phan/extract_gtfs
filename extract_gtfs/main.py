@@ -3,8 +3,6 @@ import glob
 import os
 import shutil
 
-import pandas as pd
-
 from extract_gtfs.config import config, setup as config_setup
 from extract_gtfs.data import Data, labels, stats
 from extract_gtfs.extract import extract
@@ -69,17 +67,7 @@ def clean_up(args):
         if not os.path.exists(config.labels_folder):
             os.makedirs(config.labels_folder)
 
-        # Create the DataFrames for the labels, sorted by the newly assigned labels,
-        # then save them to the label folder
-        pd.DataFrame(sorted(labels.trip_label.items(), key=lambda x: x[1])).to_csv(
-            '{}/trip_label.csv'.format(config.labels_folder), index=False, header=['old_id', 'new_id']
-        )
-        pd.DataFrame(sorted(labels.stop_label.items(), key=lambda x: x[1])).to_csv(
-            '{}/stop_label.csv'.format(config.labels_folder), index=False, header=['old_id', 'new_id']
-        )
-        pd.DataFrame(sorted(labels.node_label.items(), key=lambda x: x[1])).to_csv(
-            '{}/node_label.csv'.format(config.labels_folder), index=False, header=['old_id', 'new_id']
-        )
+        labels.save()
 
 
 def print_stats():

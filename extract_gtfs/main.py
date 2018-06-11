@@ -6,7 +6,7 @@ import shutil
 import pandas as pd
 
 from extract_gtfs.config import config, setup as config_setup
-from extract_gtfs.data import Data, labels
+from extract_gtfs.data import Data, labels, stats
 from extract_gtfs.extract import extract
 from extract_gtfs.merge import merge
 from extract_gtfs.utils import SaveLoadDescriptor, query_yes_no, write_graph_files
@@ -82,6 +82,23 @@ def clean_up(args):
         )
 
 
+def print_stats():
+    print('\nSummary:')
+    print('\t', stats.n_routes, 'routes')
+    print('\t', stats.n_trips, 'trips')
+    print('\t', stats.n_stops, 'stops')
+    print('\t', stats.n_events, 'events')
+    print('\t', stats.n_transfers, 'transfers')
+
+    print('\t', stats.n_nodes, 'nodes')
+    print('\t', stats.n_edges, 'edges')
+    print('\t', stats.n_isolated_stops, 'isolated stops (not connected to the walking graph)')
+    print('\t', stats.n_scc, 'strongly connected components')
+    print('\t', 'The size of {} largest components: {}'.format(
+        len(stats.cc_sizes), ' '.join(map(str, stats.cc_sizes))
+    ))
+
+
 def main():
     args = parse_args()
     setup(args)
@@ -89,5 +106,6 @@ def main():
     extract(args)
     merge(args)
 
+    print_stats()
     write_files()
     clean_up(args)

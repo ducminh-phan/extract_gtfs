@@ -83,7 +83,7 @@ class Relabel:
 
         stops = Data.stops
 
-        stops['stop_id'] = stops['stop_id'].map(labels.stop_label)
+        stops['id'] = stops['id'].map(labels.stop_label)
 
         Data.stops = stops
 

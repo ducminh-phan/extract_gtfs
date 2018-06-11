@@ -1,6 +1,8 @@
 import pandas as pd
+from tqdm import tqdm
 
-from merge_graph.settings import config, data
+from extract_gtfs.config import config
+from extract_gtfs.data import Data
 
 
 class MergeGraph:
@@ -18,20 +20,20 @@ class MergeGraph:
         reverse_edges = nearby_nodes.copy()
         reverse_edges[[0, 1]] = reverse_edges[[1, 0]]
 
-        nodes_gr = data.nodes_gr
+        edges_df = Data.edges
 
         # Appending the new edges into the graph, we need to rename the columns
         # to have the same columns in all DataFrames
         for df in (nearby_nodes, reverse_edges):
-            nodes_gr = nodes_gr.append(df.rename(columns={0: 'source', 1: 'target', 2: 'weight'}))
+            edges_df = edges_df.append(df.rename(columns={0: 'source', 1: 'target', 2: 'weight'}))
 
-        data.nodes_gr = nodes_gr
+        Data.edges = edges_df
 
     @classmethod
     def identify_nodes(cls):
         print('\nMerging stops to proximate nodes...')
 
-        nodes_gr = data.nodes_gr
+        edges_df = Data.edges
         identical_nodes = pd.read_csv('{}/identical_nodes.csv'.format(config.tmp_folder), header=None)
 
         # stop -> node to merge
@@ -41,37 +43,37 @@ class MergeGraph:
         # A temporary DataFrame holding the edges between a stop and neighbors of the node to merge
         tmp_df = pd.DataFrame([])
 
-        for node in nodes:
+        for node in tqdm(nodes):
             # Extract the edges incident to the current node and their indices
-            extracted = nodes_gr[(nodes_gr['source'] == node) | (nodes_gr['target'] == node)]
+            extracted = edges_df[(edges_df['source'] == node) | (edges_df['target'] == node)]
             idx = extracted.index
 
             # Get the list of stops that node is mapped to
             s = list(x for x in merge_labels.keys() if merge_labels[x] == node)
 
             # Remove extracted from the original df
-            nodes_gr = nodes_gr.drop(idx)
+            edges_df = edges_df.drop(idx)
 
             # Add mapped edges
             for si in s:
                 tmp = extracted.replace({'source': {node: si}, 'target': {node: si}})
                 tmp_df = tmp_df.append(tmp)
 
-        data.nodes_gr = nodes_gr.append(tmp_df)
+        edges_df = edges_df.append(tmp_df)
 
-        data.nodes_gr = nodes_gr
+        Data.edges = edges_df
         cls.merge_labels = merge_labels
 
     @classmethod
     def merge_nodes(cls):
         print('\nAdding the stops to the list of nodes in the graph...')
 
-        nodes_co = data.nodes_co
+        nodes_df = Data.nodes
 
         # Remove the merged nodes
-        nodes_co = nodes_co[~nodes_co['node_id'].isin(cls.merge_labels.values())]
+        nodes_df = nodes_df[~nodes_df['id'].isin(cls.merge_labels.values())]
 
-        data.nodes_co = data.stops_co.append(nodes_co)
+        Data.nodes = Data.stops.append(nodes_df)
 
     @classmethod
     def merge(cls):

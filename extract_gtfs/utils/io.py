@@ -5,7 +5,7 @@ from extract_gtfs.config import config
 
 def read_co_file(file_path):
     df = pd.read_csv(file_path, sep='\s+', header=None, usecols=[1, 2, 3])
-    df.columns = ['node_id', 'node_lon', 'node_lat']
+    df.columns = ['id', 'lon', 'lat']
 
     return df
 
@@ -33,7 +33,7 @@ def write_graph_files():
     from extract_gtfs.data import Data
 
     write_co_file(Data.nodes, config.nodes_file)
-    write_gr_file(Data.edges, config.graph_file)
+    write_gr_file(Data.edges, config.edges_file)
 
 
 def read_csv(file_name, **kwargs):

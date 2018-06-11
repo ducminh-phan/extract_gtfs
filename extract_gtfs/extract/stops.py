@@ -35,4 +35,7 @@ class ExtractCoordinates:
         stop_df = stop_df.sort_values(by=['stop_id'])
         stop_df = stop_df[['stop_id', 'stop_lon', 'stop_lat']]
 
+        # Rename the columns to have the same columns with the nodes DataFrame
+        stop_df.columns = ['id', 'lon', 'lat']
+
         Data.stops = stop_df

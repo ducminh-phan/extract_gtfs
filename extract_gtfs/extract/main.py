@@ -1,11 +1,12 @@
+from extract_gtfs.config import config
 from extract_gtfs.data import Data, stats
 from extract_gtfs.extract.collect_routes import CollectRoute
 from extract_gtfs.extract.extract_dates import ExtractDate
 from extract_gtfs.extract.relabel import Relabel
 from extract_gtfs.extract.split_trips import SplitTrip
-from extract_gtfs.extract.transfers import ExtractTransfer
 from extract_gtfs.extract.stops import ExtractCoordinates
-from extract_gtfs.utils.misc import measure_time
+from extract_gtfs.extract.transfers import ExtractTransfer
+from extract_gtfs.utils import measure_time, write_co_file
 
 
 def extract(args):
@@ -24,6 +25,8 @@ def _extract(args):
     if args.relabel:
         Relabel.create_label()
         Relabel.relabel()
+
+    write_co_file(Data.stops, config.stops_file)
 
 
 def summary():

@@ -13,6 +13,7 @@ def setup(args):
     config.tmp_folder = '{}_tmp'.format(args.in_folder)
     config.labels_folder = '{}_labels'.format(args.in_folder)
 
+    config.stops_file = '{}/stops.co'.format(config.tmp_folder)
     config.nodes_file = '{}/nodes.co'.format(config.out_folder)
     config.edges_file = '{}/edges.gr'.format(config.out_folder)
 

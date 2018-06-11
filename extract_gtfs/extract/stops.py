@@ -11,8 +11,6 @@ def coor_to_int(coor):
 
 
 class ExtractCoordinates:
-    __slots__ = ('coordinates_table',)
-
     @classmethod
     def extract(cls):
         print('\nGetting the coordinates of the stops served in the timetable...')
@@ -33,12 +31,11 @@ class ExtractCoordinates:
         stop_df['stop_lat'] = stop_df['stop_lat'].apply(coor_to_int)
         stop_df['stop_lon'] = stop_df['stop_lon'].apply(coor_to_int)
 
-        cls.coordinates_table = stop_df
+        # Sort by stop_id and reorder the columns
+        stop_df = stop_df.sort_values(by=['stop_id'])
+        stop_df = stop_df[['stop_id', 'stop_lon', 'stop_lat']]
 
-    @classmethod
-    def write_table(cls, out_folder):
-        table = cls.coordinates_table.sort_values(by=['stop_id'])
+        # Rename the columns to have the same columns with the nodes DataFrame
+        stop_df.columns = ['id', 'lon', 'lat']
 
-        with open('{0}/stops.co'.format(out_folder), 'w') as f:
-            for _, row in table.iterrows():
-                f.write('v {} {} {}\n'.format(row['stop_id'], row['stop_lon'], row['stop_lat']))
+        Data.stops = stop_df

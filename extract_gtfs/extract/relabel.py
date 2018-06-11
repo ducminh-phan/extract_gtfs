@@ -1,10 +1,7 @@
-from extract_gtfs.data import Data
-from extract_gtfs.walking_graph import ExtractCoordinates
+from extract_gtfs.data import Data, labels
 
 
 class Relabel:
-    __slots__ = ('trip_label', 'stop_label')
-
     @classmethod
     def label_trips(cls):
         trip_label = {}
@@ -13,7 +10,7 @@ class Relabel:
         for idx, trip in enumerate(selected_trips):
             trip_label[trip] = idx
 
-        cls.trip_label = trip_label
+        labels.trip_label = trip_label
 
     @classmethod
     def label_stops(cls):
@@ -30,7 +27,7 @@ class Relabel:
         for idx, stop in enumerate(stops):
             stop_label[stop] = idx
 
-        cls.stop_label = stop_label
+        labels.stop_label = stop_label
 
     @classmethod
     def create_label(cls):
@@ -44,7 +41,7 @@ class Relabel:
 
         trips = Data.trips
 
-        trips['trip_id'] = trips['trip_id'].map(cls.trip_label)
+        trips['trip_id'] = trips['trip_id'].map(labels.trip_label)
 
         Data.trips = trips
 
@@ -54,8 +51,8 @@ class Relabel:
 
         stop_times = Data.stop_times
 
-        stop_times['trip_id'] = stop_times['trip_id'].map(cls.trip_label)
-        stop_times['stop_id'] = stop_times['stop_id'].map(cls.stop_label)
+        stop_times['trip_id'] = stop_times['trip_id'].map(labels.trip_label)
+        stop_times['stop_id'] = stop_times['stop_id'].map(labels.stop_label)
 
         Data.stop_times = stop_times
 
@@ -65,8 +62,8 @@ class Relabel:
 
         transfers = Data.transfers
 
-        transfers['from_stop_id'] = transfers['from_stop_id'].map(cls.stop_label)
-        transfers['to_stop_id'] = transfers['to_stop_id'].map(cls.stop_label)
+        transfers['from_stop_id'] = transfers['from_stop_id'].map(labels.stop_label)
+        transfers['to_stop_id'] = transfers['to_stop_id'].map(labels.stop_label)
 
         Data.transfers = transfers
 
@@ -76,7 +73,7 @@ class Relabel:
 
         stop_routes = Data.stop_routes
 
-        stop_routes['stop_id'] = stop_routes['stop_id'].map(cls.stop_label)
+        stop_routes['stop_id'] = stop_routes['stop_id'].map(labels.stop_label)
 
         Data.stop_routes = stop_routes
 
@@ -84,11 +81,11 @@ class Relabel:
     def relabel_coordinates(cls):
         print('\nRelabelling the coordinates table...')
 
-        table = ExtractCoordinates.coordinates_table
+        stops = Data.stops
 
-        table['stop_id'] = table['stop_id'].map(cls.stop_label)
+        stops['id'] = stops['id'].map(labels.stop_label)
 
-        ExtractCoordinates.coordinates_table = table
+        Data.stops = stops
 
     @classmethod
     def relabel(cls):

@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from extract_gtfs.data import Data
-from extract_gtfs.split_trips import SplitTrip
+from extract_gtfs.extract.split_trips import SplitTrip
 from extract_gtfs.utils import LogAttribute, load_attr
 
 

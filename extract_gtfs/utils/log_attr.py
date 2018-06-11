@@ -1,56 +1,6 @@
-import argparse
 import os
 import pickle
 from functools import wraps
-from time import time
-
-import pandas as pd
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(prog="python3 -m extract_gtfs",
-                                     description="Extract information from GTFS files "
-                                                 "to use with RAPTOR algorithm")
-
-    parser.add_argument("folder", help="The folder containing the GTFS files to extract")
-    parser.add_argument("-o", "--output", default=None, help="The name of the output folder. "
-                                                             "The default name is obtained by appending "
-                                                             "'_out' to the input folder name")
-    parser.add_argument('--no-relabel', dest='relabel', action='store_false',
-                        help="Do not relabel the stops and trips.")
-
-    args = parser.parse_args()
-    args = check_args(parser, args)
-
-    return args
-
-
-def check_args(parser, args):
-    if args.output is None:
-        args.output = args.folder + "_out"
-    elif args.output == args.folder:
-        parser.error("The input and output folders' names must be different")
-
-    return args
-
-
-def read_csv(file_name, **kwargs):
-    return pd.read_csv('{}/{}'.format(parse_args().folder, file_name), **kwargs)
-
-
-def measure_time(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time()
-        res = func(*args, **kwargs)
-
-        elapsed_time = time() - start_time
-        print('\nTime elapsed:', round(elapsed_time, 3), 'seconds')
-        print('-' * 50)
-
-        return res
-
-    return wrapper
 
 
 class SaveLoadDescriptor:
@@ -58,7 +8,7 @@ class SaveLoadDescriptor:
     Descriptor class which supports saving automatically to avoid
     recomputing expensive computations.
     """
-    directory = "{}_tmp".format(parse_args().folder)
+    __slots__ = ('name', 'value', 'directory')
 
     def __init__(self, name):
         self.name = name
@@ -158,34 +108,3 @@ def load_attr(*attr_names):
         return wrapper
 
     return decorator
-
-
-def query_yes_no(question, default="yes"):
-    """
-    Ask a yes/no question using input() and return the answer.
-    :param question: a string that is presented to the user
-    :param default: the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user)
-    :return: True for "yes" or False for "no"
-    """
-    valid = {"yes": True, "y": True,
-             "no": False, "n": False}
-
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        choice = input(question + prompt).lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            print("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")

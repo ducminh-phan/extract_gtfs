@@ -30,6 +30,18 @@ minimum sum of the tranfer times of such possible intermediate transfers.
 4. The stops (trips) are relabelled, so that their ids are integers from 0 to #stops - 1 (#trips - 1). The routes are
 also numbered from 0 to #routes - 1.
 
+5. The stops are merged to the provided walking graph. There are three cases for each stop:
+
+    a. If there is a node in the walking graph whose distance to the stop is smaller than 5 metres, then we identify
+    the stop with this node. All the neighbours of the node are connected to the stop using the same distance and
+    direction.
+    
+    b. If the distance of the closest node in the walking graph to the stop is between 5 and 100 metres, we connect the
+    stop to the 5 closest nodes in the walking graph.
+    
+    c. If the distance of the closest node in the walking graph to the stop is larger than 100 metres, we do not add the
+    stop to the walking graph.
+
 ## Setup
 
 1. Python 3.5+
@@ -38,13 +50,22 @@ also numbered from 0 to #routes - 1.
 
 ## Usage
 
-The tool can be run using CLI: `python3 -m extract_gtfs [-h] [-o OUTPUT] folder`
+The tool can be run using CLI:
 
-    positional arguments:
-      folder                The folder containing the GTFS files to extract
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -o OUTPUT, --output OUTPUT
-                            The name of the output folder. The default name is
-                            obtained by appending '_out' to the input folder name
+```
+python3 -m extract_gtfs [-h] [--no-relabel]
+                        in_folder out_folder nodes_file graph_file
+```
+
+```
+positional arguments:
+  in_folder     The folder containing the GTFS files to extract
+  out_folder    The folder to write the outout files
+  nodes_file    The file containing the coordinates of the nodes of the
+                walking graph
+  graph_file    The file containing the edges of the walking graph
+
+optional arguments:
+  -h, --help    show this help message and exit
+  --no-relabel  Do not relabel the stops and trips.
+```

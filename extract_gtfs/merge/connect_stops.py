@@ -52,7 +52,11 @@ class MergeGraph:
             s = list(x for x in merge_labels.keys() if merge_labels[x] == node)
 
             # Remove extracted from the original df
-            edges_df = edges_df.drop(idx)
+            # Currently, there is a bug with drop when the index is not unique and idx is empty
+            # https://github.com/pandas-dev/pandas/issues/21494
+            # Thus we need to explicitly check if idx is not empty
+            if len(idx):
+                edges_df = edges_df.drop(idx)
 
             # Add mapped edges
             for si in s:

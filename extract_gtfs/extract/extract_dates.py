@@ -35,7 +35,7 @@ def date_to_str(date_obj):
     >>> str_to_date(date_to_str(date(2018, 8, 25)))
     datetime.date(2018, 8, 25)
     """
-    return '{0.year}{0.month:0>2}{0.day}'.format(date_obj)
+    return '{0.year}{0.month:0>2}{0.day:0>2}'.format(date_obj)
 
 
 class ExtractDate(metaclass=LogAttribute):

@@ -11,9 +11,13 @@ class ExtractTransfer(metaclass=LogAttribute):
     @classmethod
     @load_attr({Data: 'transfers'})
     def extract(cls):
-        transfers_df = read_csv('transfers.txt',
-                                usecols=['from_stop_id', 'to_stop_id', 'min_transfer_time'],
-                                dtype={'from_stop_id': str, 'to_stop_id': str})
+        try:
+            transfers_df = read_csv('transfers.txt',
+                                    usecols=['from_stop_id', 'to_stop_id', 'min_transfer_time'],
+                                    dtype={'from_stop_id': str, 'to_stop_id': str})
+        except FileNotFoundError:
+            # Create a dummy transfer_df in case of absence of the optional file transfers.txt
+            transfers_df = pd.DataFrame([], columns=['from_stop_id', 'to_stop_id', 'min_transfer_time'])
 
         # There might be NaN values in the file, thus we can only change the dtype of min_transfer_time
         # to int after removing NaN values

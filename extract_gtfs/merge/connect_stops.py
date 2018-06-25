@@ -40,9 +40,6 @@ class MergeGraph:
         merge_labels = dict(zip(identical_nodes[0], identical_nodes[1]))
         nodes = set(merge_labels.values())
 
-        # A temporary DataFrame holding the edges between a stop and neighbors of the node to merge
-        tmp_df = pd.DataFrame([])
-
         for node in tqdm(nodes):
             # Extract the edges incident to the current node and their indices
             extracted = edges_df[(edges_df['source'] == node) | (edges_df['target'] == node)]
@@ -61,9 +58,7 @@ class MergeGraph:
             # Add mapped edges
             for si in s:
                 tmp = extracted.replace({'source': {node: si}, 'target': {node: si}})
-                tmp_df = tmp_df.append(tmp)
-
-        edges_df = edges_df.append(tmp_df)
+                edges_df = edges_df.append(tmp, ignore_index=True)
 
         Data.edges = edges_df
         cls.merge_labels = merge_labels

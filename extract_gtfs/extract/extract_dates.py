@@ -1,9 +1,12 @@
-from datetime import date
+from collections import defaultdict
+from datetime import date, timedelta
 
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
 from extract_gtfs.data import Data
 from extract_gtfs.utils import LogAttribute, load_attr, read_csv
+
+DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 
 def str_to_date(date_string):
@@ -46,9 +49,12 @@ class ExtractDate(metaclass=LogAttribute):
 
         cls.calendar_df = read_csv('calendar.txt', dtype=str)
 
+        # Convert the day columns from str to int
+        cls.calendar_df[DAYS] = cls.calendar_df[DAYS].applymap(int)
+
         try:
-            cls.calendar_dates_df = read_csv('calendar_dates.txt', dtype=str,
-                                             usecols=['service_id', 'date'])
+            cls.calendar_dates_df = read_csv('calendar_dates.txt',
+                                             dtype={'service_id': str, 'date': str, 'exception_type': int})
         except FileNotFoundError:
             # We need to check if the optional calendar_dates.txt file does not exist
             cls.calendar_dates_df = None
@@ -75,11 +81,55 @@ class ExtractDate(metaclass=LogAttribute):
     def get_services_by_date(cls):
         print("\nFinding the services available for each day...")
 
-        d2s = {}
-        date_groups = cls.calendar_dates_df.groupby('date')
-        for date_str in tqdm(cls.calendar_dates_df['date'].unique()):
-            df = date_groups.get_group(date_str)
-            d2s[date_str] = set(df['service_id'])
+        start_date = str_to_date(cls.start_date_str)
+        end_date = str_to_date(cls.end_date_str)
+
+        # Remove all zeros services for faster iteration
+        # calendar_df = cls.calendar_df[(cls.calendar_df[DAYS] != 0).any(axis=1)]
+        calendar_df = cls.calendar_df
+
+        d2s = defaultdict(set)
+
+        # Iterate over the first 7 dates in the timetable and search in the calendar_df
+        # to look for available services
+        for d in trange(7):
+            current_date = start_date + timedelta(d)
+            weekday_idx = current_date.weekday()
+            weekday_str = DAYS[weekday_idx]
+
+            # Get the availabe services for this weekday
+            services_set = set(calendar_df[calendar_df[weekday_str] == 1]['service_id'])
+
+            # Skip to the next day if there is no service for this day
+            if not services_set:
+                continue
+
+            # The data from calendar_df is periodic over the course of a week,
+            # thus we add a timedelta of 7 days to add the available services
+            # to the same day in the next week
+            while True:
+                current_date_str = date_to_str(current_date)
+                d2s[current_date_str] = services_set
+
+                current_date += timedelta(7)
+                if current_date > end_date:
+                    break
+
+        # Modify the available services with the exceptions from calendar_dates
+        if cls.calendar_dates_df is not None:
+            date_groups = cls.calendar_dates_df.groupby('date')
+            for date_str in tqdm(cls.calendar_dates_df['date'].unique()):
+                df = date_groups.get_group(date_str)
+
+                # From the GTFS reference, for the field exception_type,
+                # a value of 1 indicates that service has been added for the specified date
+                # a value of 2 indicates that service has been removed for the specified date
+                # Reference: https://developers.google.com/transit/gtfs/reference/#calendar_datestxt
+                services_to_add = set(df[df['exception_type'] == 1]['service_id'])
+                services_to_remove = set(df[df['exception_type'] == 2]['service_id'])
+
+                d2s[date_str] |= services_to_add
+                d2s[date_str] -= services_to_remove
 
         cls.date_to_services = d2s
 
@@ -93,8 +143,13 @@ class ExtractDate(metaclass=LogAttribute):
         for date_str, services in tqdm(cls.date_to_services.items()):
             trips_set = set()
             for service in services:
-                df = service_groups.get_group(service)
-                trips_set |= set(df['trip_id'])
+                try:
+                    df = service_groups.get_group(service)
+                    trips_set |= set(df['trip_id'])
+                except KeyError:
+                    # service is obtained from calendar.txt and calendar_dates.txt,
+                    # but there is no trip with such service_id in trips.txt
+                    pass
 
             d2t[date_str] = trips_set
 
@@ -104,6 +159,7 @@ class ExtractDate(metaclass=LogAttribute):
     @load_attr({Data: ['selected_date', 'selected_trips']})
     def extract(cls):
         cls.setup()
+        cls.find_date_range()
         cls.get_services_by_date()
         cls.get_trips_by_date()
 

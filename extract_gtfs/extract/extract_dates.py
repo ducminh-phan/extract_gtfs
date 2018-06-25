@@ -36,18 +36,39 @@ def date_to_str(date_obj):
 
 
 class ExtractDate(metaclass=LogAttribute):
-    __slots__ = ('calendar_dates_df', 'trips_df',
+    __slots__ = ('calendar_df', 'calendar_dates_df', 'trips_df',
+                 'start_date_str', 'end_date_str',
                  'date_to_services', 'date_to_trips')
 
     @classmethod
     def setup(cls):
         print("Reading the GTFS files...")
 
-        cls.calendar_dates_df = read_csv('calendar_dates.txt', dtype=str,
-                                         usecols=['service_id', 'date'])
+        cls.calendar_df = read_csv('calendar.txt', dtype=str)
+
+        try:
+            cls.calendar_dates_df = read_csv('calendar_dates.txt', dtype=str,
+                                             usecols=['service_id', 'date'])
+        except FileNotFoundError:
+            # We need to check if the optional calendar_dates.txt file does not exist
+            cls.calendar_dates_df = None
 
         cls.trips_df = read_csv('trips.txt', dtype=str,
                                 usecols=['service_id', 'trip_id'])
+
+    @classmethod
+    @load_attr('start_date_str', 'end_date_str')
+    def find_date_range(cls):
+        print("\nFinding the date range of the timetable...")
+
+        # The date strings are in the format YYMMDD, so we can compare the actual dates
+        # by simply comparing the strings
+        cls.start_date_str = min(cls.calendar_df['start_date'])
+        cls.end_date_str = max(cls.calendar_df['end_date'])
+
+        if cls.calendar_dates_df is not None:
+            cls.start_date_str = min(cls.start_date_str, min(cls.calendar_dates_df['date']))
+            cls.end_date_str = max(cls.end_date_str, max(cls.calendar_dates_df['date']))
 
     @classmethod
     @load_attr('date_to_services')

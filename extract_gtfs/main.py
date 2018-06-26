@@ -45,9 +45,19 @@ def setup(args):
 def write_files():
     print('\nWriting the output files...')
 
+    name_to_columns = {
+        'stop_times': ['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence'],
+        'transfers': ['from_stop_id', 'to_stop_id', 'min_transfer_time'],
+        'trips': ['route_id', 'trip_id'],
+        'stop_routes': ['stop_id', 'route_id']
+    }
+
     for attr in ('stop_times', 'transfers', 'trips', 'stop_routes'):
         df = getattr(Data, attr)
-        df.to_csv('{}/{}.csv.gz'.format(config.out_folder, attr), index=False, compression='gzip')
+
+        # We need to make sure the columns are in correct order
+        df.to_csv('{}/{}.csv.gz'.format(config.out_folder, attr), index=False,
+                  columns=name_to_columns[attr], compression='gzip')
 
     write_graph_files()
 

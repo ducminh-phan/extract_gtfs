@@ -24,14 +24,14 @@ def read_graph(args):
     edges_df = read_gr_file(args.graph_file)
 
     # Filter the coordinates to keep only the nodes appear in the graph
-    nodes = set(edges_df['source']) | set(edges_df['target'])
-    nodes_df = nodes_df[nodes_df['id'].isin(nodes)]
+    nodes = set(edges_df["source"]) | set(edges_df["target"])
+    nodes_df = nodes_df[nodes_df["id"].isin(nodes)]
 
     # Remove self-loops
-    edges_df = edges_df[edges_df['source'] != edges_df['target']]
+    edges_df = edges_df[edges_df["source"] != edges_df["target"]]
 
     # Remove duplicated edges
-    edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep='last')
+    edges_df = edges_df.drop_duplicates(subset=["source", "target"], keep="last")
 
     Data.nodes = nodes_df
     Data.edges = edges_df
@@ -40,7 +40,7 @@ def read_graph(args):
 def summary():
     g = nx.from_pandas_edgelist(Data.edges, create_using=nx.DiGraph())
 
-    with open('{}/isolated_stops.csv'.format(config.tmp_folder), 'r') as f:
+    with open("{}/isolated_stops.csv".format(config.tmp_folder), "r") as f:
         num_isolated_stops = 0
         for num_isolated_stops, _ in enumerate(f, 1):
             pass
@@ -49,4 +49,6 @@ def summary():
     stats.n_edges = len(g.edges)
     stats.n_isolated_stops = num_isolated_stops
     stats.n_scc = nx.number_strongly_connected_components(g)
-    stats.cc_sizes = sorted(map(len, nx.strongly_connected_components(g)), reverse=True)[:10]
+    stats.cc_sizes = sorted(
+        map(len, nx.strongly_connected_components(g)), reverse=True
+    )[:10]

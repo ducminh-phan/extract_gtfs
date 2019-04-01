@@ -8,7 +8,8 @@ class SaveLoadDescriptor:
     Descriptor class which supports saving automatically to avoid
     recomputing expensive computations.
     """
-    __slots__ = ('name', 'value', 'directory')
+
+    __slots__ = ("name", "value", "directory")
 
     def __init__(self, name):
         self.name = name
@@ -27,14 +28,16 @@ class SaveLoadDescriptor:
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
 
-        with open("{}/{}".format(self.directory, file_name), 'wb') as f:
+        with open("{}/{}".format(self.directory, file_name), "wb") as f:
             pickle.dump(value, f)
 
         self.value[instance] = value
 
     def __get__(self, instance, owner):
         if self.name not in instance.__slots__:
-            raise AttributeError("{} has no attribute {}".format(instance.__name__, self.name))
+            raise AttributeError(
+                "{} has no attribute {}".format(instance.__name__, self.name)
+            )
 
         value = self.value.get(instance, None)
         if value is not None:
@@ -45,7 +48,7 @@ class SaveLoadDescriptor:
         file_name = self.get_file_name(instance)
 
         try:
-            with open("{}/{}".format(self.directory, file_name), 'rb') as f:
+            with open("{}/{}".format(self.directory, file_name), "rb") as f:
                 print("\nLoading precomputed {} from file".format(file_name[:-7]))
                 value = pickle.load(f)
 
@@ -60,10 +63,10 @@ class SaveLoadDescriptor:
 class LogAttribute(type):
     def __new__(mcs, name, bases, namespace):
         # Create and assign decriptors based on __slots__ of the derived classes
-        for key in namespace['__slots__']:
+        for key in namespace["__slots__"]:
             # Skip names containing df since they are DataFrames loaded from the GTFS files,
             # also skip attributes which are already assigned
-            if 'df' not in key and key not in mcs.__dict__:
+            if "df" not in key and key not in mcs.__dict__:
                 setattr(mcs, key, SaveLoadDescriptor(key))
 
         return super().__new__(mcs, name, bases, namespace)
@@ -98,7 +101,9 @@ def load_attr(*attr_names):
                     if isinstance(names, str):
                         names = [names]
 
-                    val = val and (all(getattr(cls_, name) is not None for name in names) or None)
+                    val = val and (
+                        all(getattr(cls_, name) is not None for name in names) or None
+                    )
             else:
                 val = all(getattr(cls, name) is not None for name in attr_names) or None
 

@@ -6,13 +6,15 @@ from extract_gtfs.data import Data
 
 
 class MergeGraph:
-    __slots__ = ('merge_labels',)
+    __slots__ = ("merge_labels",)
 
     @classmethod
     def connect_nodes(cls):
-        print('\nConnecting stops to the nearby nodes...')
+        print("\nConnecting stops to the nearby nodes...")
 
-        nearby_nodes = pd.read_csv('{}/nearby_nodes.csv'.format(config.tmp_folder), header=None)
+        nearby_nodes = pd.read_csv(
+            "{}/nearby_nodes.csv".format(config.tmp_folder), header=None
+        )
 
         # Each row in nearby_nodes is an edge (stop_id, node_id, weight),
         # here we create the edges in the reverse direction with the same weight
@@ -25,16 +27,20 @@ class MergeGraph:
         # Appending the new edges into the graph, we need to rename the columns
         # to have the same columns in all DataFrames
         for df in (nearby_nodes, reverse_edges):
-            edges_df = edges_df.append(df.rename(columns={0: 'source', 1: 'target', 2: 'weight'}))
+            edges_df = edges_df.append(
+                df.rename(columns={0: "source", 1: "target", 2: "weight"})
+            )
 
         Data.edges = edges_df
 
     @classmethod
     def identify_nodes(cls):
-        print('\nMerging stops to proximate nodes...')
+        print("\nMerging stops to proximate nodes...")
 
         edges_df = Data.edges
-        identical_nodes = pd.read_csv('{}/identical_nodes.csv'.format(config.tmp_folder), header=None)
+        identical_nodes = pd.read_csv(
+            "{}/identical_nodes.csv".format(config.tmp_folder), header=None
+        )
 
         # stop -> node to merge
         merge_labels = dict(zip(identical_nodes[0], identical_nodes[1]))
@@ -42,7 +48,9 @@ class MergeGraph:
 
         for node in tqdm(nodes):
             # Extract the edges incident to the current node and their indices
-            extracted = edges_df[(edges_df['source'] == node) | (edges_df['target'] == node)]
+            extracted = edges_df[
+                (edges_df["source"] == node) | (edges_df["target"] == node)
+            ]
             idx = extracted.index
 
             # Get the list of stops that node is mapped to
@@ -57,7 +65,7 @@ class MergeGraph:
 
             # Add mapped edges
             for si in s:
-                tmp = extracted.replace({'source': {node: si}, 'target': {node: si}})
+                tmp = extracted.replace({"source": {node: si}, "target": {node: si}})
                 edges_df = edges_df.append(tmp, ignore_index=True)
 
         Data.edges = edges_df
@@ -65,12 +73,12 @@ class MergeGraph:
 
     @classmethod
     def merge_nodes(cls):
-        print('\nAdding the stops to the list of nodes in the graph...')
+        print("\nAdding the stops to the list of nodes in the graph...")
 
         nodes_df = Data.nodes
 
         # Remove the merged nodes
-        nodes_df = nodes_df[~nodes_df['id'].isin(cls.merge_labels.values())]
+        nodes_df = nodes_df[~nodes_df["id"].isin(cls.merge_labels.values())]
 
         Data.nodes = Data.stops.append(nodes_df)
 

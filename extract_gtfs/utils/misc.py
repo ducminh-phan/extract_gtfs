@@ -9,8 +9,8 @@ def measure_time(func):
         res = func(*args, **kwargs)
 
         elapsed_time = time() - start_time
-        print('\nTime elapsed:', round(elapsed_time, 3), 'seconds')
-        print('-' * 50)
+        print("\nTime elapsed:", round(elapsed_time, 3), "seconds")
+        print("-" * 50)
 
         return res
 
@@ -26,8 +26,7 @@ def query_yes_no(question, default="yes"):
         an answer is required of the user)
     :return: True for "yes" or False for "no"
     """
-    valid = {"yes": True, "y": True,
-             "no": False, "n": False}
+    valid = {"yes": True, "y": True, "no": False, "n": False}
 
     if default is None:
         prompt = " [y/n] "
@@ -40,7 +39,7 @@ def query_yes_no(question, default="yes"):
 
     while True:
         choice = input(question + prompt).lower()
-        if default is not None and choice == '':
+        if default is not None and choice == "":
             return valid[default]
         elif choice in valid:
             return valid[choice]

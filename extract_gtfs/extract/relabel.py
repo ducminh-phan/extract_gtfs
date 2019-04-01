@@ -19,7 +19,11 @@ class Relabel:
 
         # The available stops in transfers and stop_times might be different,
         # so we need to find the union of these sets to have consistent labels
-        stops = set(transfers['from_stop_id']) | set(transfers['to_stop_id']) | set(stop_times['stop_id'])
+        stops = (
+            set(transfers["from_stop_id"])
+            | set(transfers["to_stop_id"])
+            | set(stop_times["stop_id"])
+        )
         stops = sorted(stops)
 
         stop_label = {}
@@ -31,59 +35,59 @@ class Relabel:
 
     @classmethod
     def create_label(cls):
-        print('\nCreating new labels for trips and stops...')
+        print("\nCreating new labels for trips and stops...")
         cls.label_trips()
         cls.label_stops()
 
     @classmethod
     def relabel_trips(cls):
-        print('\nRelabelling the trips...')
+        print("\nRelabelling the trips...")
 
         trips = Data.trips
 
-        trips['trip_id'] = trips['trip_id'].map(labels.trip_label)
+        trips["trip_id"] = trips["trip_id"].map(labels.trip_label)
 
         Data.trips = trips
 
     @classmethod
     def relabel_stop_times(cls):
-        print('\nRelabelling the timetable...')
+        print("\nRelabelling the timetable...")
 
         stop_times = Data.stop_times
 
-        stop_times['trip_id'] = stop_times['trip_id'].map(labels.trip_label)
-        stop_times['stop_id'] = stop_times['stop_id'].map(labels.stop_label)
+        stop_times["trip_id"] = stop_times["trip_id"].map(labels.trip_label)
+        stop_times["stop_id"] = stop_times["stop_id"].map(labels.stop_label)
 
         Data.stop_times = stop_times
 
     @classmethod
     def relabel_transfers(cls):
-        print('\nRelabelling the transfers...')
+        print("\nRelabelling the transfers...")
 
         transfers = Data.transfers
 
-        transfers['from_stop_id'] = transfers['from_stop_id'].map(labels.stop_label)
-        transfers['to_stop_id'] = transfers['to_stop_id'].map(labels.stop_label)
+        transfers["from_stop_id"] = transfers["from_stop_id"].map(labels.stop_label)
+        transfers["to_stop_id"] = transfers["to_stop_id"].map(labels.stop_label)
 
         Data.transfers = transfers
 
     @classmethod
     def relabel_stop_routes(cls):
-        print('\nRelabelling the stops...')
+        print("\nRelabelling the stops...")
 
         stop_routes = Data.stop_routes
 
-        stop_routes['stop_id'] = stop_routes['stop_id'].map(labels.stop_label)
+        stop_routes["stop_id"] = stop_routes["stop_id"].map(labels.stop_label)
 
         Data.stop_routes = stop_routes
 
     @classmethod
     def relabel_coordinates(cls):
-        print('\nRelabelling the coordinates table...')
+        print("\nRelabelling the coordinates table...")
 
         stops = Data.stops
 
-        stops['id'] = stops['id'].map(labels.stop_label)
+        stops["id"] = stops["id"].map(labels.stop_label)
 
         Data.stops = stops
 

@@ -30,8 +30,8 @@ def _extract(args):
 
 
 def summary():
-    stats.n_trips = len(Data.trips['trip_id'].unique())
-    stats.n_routes = len(Data.trips['route_id'].unique())
+    stats.n_trips = len(Data.trips["trip_id"].unique())
+    stats.n_routes = len(Data.trips["route_id"].unique())
     stats.n_events = len(Data.stop_times)
-    stats.n_stops = len(Data.stop_times['stop_id'].unique())
+    stats.n_stops = len(Data.stop_times["stop_id"].unique())
     stats.n_transfers = len(Data.transfers)

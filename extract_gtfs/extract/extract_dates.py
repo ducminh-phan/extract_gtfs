@@ -6,7 +6,7 @@ from tqdm import tqdm, trange
 from extract_gtfs.data import Data
 from extract_gtfs.utils import LogAttribute, load_attr, read_csv
 
-DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
 def str_to_date(date_string):
@@ -35,49 +35,60 @@ def date_to_str(date_obj):
     >>> str_to_date(date_to_str(date(2018, 8, 25)))
     datetime.date(2018, 8, 25)
     """
-    return '{0.year}{0.month:0>2}{0.day:0>2}'.format(date_obj)
+    return "{0.year}{0.month:0>2}{0.day:0>2}".format(date_obj)
 
 
 class ExtractDate(metaclass=LogAttribute):
-    __slots__ = ('calendar_df', 'calendar_dates_df', 'trips_df',
-                 'start_date_str', 'end_date_str',
-                 'date_to_services', 'date_to_trips')
+    __slots__ = (
+        "calendar_df",
+        "calendar_dates_df",
+        "trips_df",
+        "start_date_str",
+        "end_date_str",
+        "date_to_services",
+        "date_to_trips",
+    )
 
     @classmethod
     def setup(cls):
         print("Reading the GTFS files...")
 
-        cls.calendar_df = read_csv('calendar.txt', dtype=str)
+        cls.calendar_df = read_csv("calendar.txt", dtype=str)
 
         # Convert the day columns from str to int
         cls.calendar_df[DAYS] = cls.calendar_df[DAYS].applymap(int)
 
         try:
-            cls.calendar_dates_df = read_csv('calendar_dates.txt',
-                                             dtype={'service_id': str, 'date': str, 'exception_type': int})
+            cls.calendar_dates_df = read_csv(
+                "calendar_dates.txt",
+                dtype={"service_id": str, "date": str, "exception_type": int},
+            )
         except FileNotFoundError:
             # We need to check if the optional calendar_dates.txt file does not exist
             cls.calendar_dates_df = None
 
-        cls.trips_df = read_csv('trips.txt', dtype=str,
-                                usecols=['service_id', 'trip_id'])
+        cls.trips_df = read_csv(
+            "trips.txt", dtype=str, usecols=["service_id", "trip_id"]
+        )
 
     @classmethod
-    @load_attr('start_date_str', 'end_date_str')
+    @load_attr("start_date_str", "end_date_str")
     def find_date_range(cls):
         print("\nFinding the date range of the timetable...")
 
         # The date strings are in the format YYMMDD, so we can compare the actual dates
         # by simply comparing the strings
-        cls.start_date_str = min(cls.calendar_df['start_date'])
-        cls.end_date_str = max(cls.calendar_df['end_date'])
+        cls.start_date_str = min(cls.calendar_df["start_date"])
+        cls.end_date_str = max(cls.calendar_df["end_date"])
 
         if cls.calendar_dates_df is not None:
-            cls.start_date_str = min(cls.start_date_str, min(cls.calendar_dates_df['date']))
-            cls.end_date_str = max(cls.end_date_str, max(cls.calendar_dates_df['date']))
+            cls.start_date_str = min(
+                cls.start_date_str, min(cls.calendar_dates_df["date"])
+            )
+            cls.end_date_str = max(cls.end_date_str, max(cls.calendar_dates_df["date"]))
 
     @classmethod
-    @load_attr('date_to_services')
+    @load_attr("date_to_services")
     def get_services_by_date(cls):
         print("\nFinding the services available for each day...")
 
@@ -98,7 +109,7 @@ class ExtractDate(metaclass=LogAttribute):
             weekday_str = DAYS[weekday_idx]
 
             # Get the availabe services for this weekday
-            services_set = set(calendar_df[calendar_df[weekday_str] == 1]['service_id'])
+            services_set = set(calendar_df[calendar_df[weekday_str] == 1]["service_id"])
 
             # Skip to the next day if there is no service for this day
             if not services_set:
@@ -117,16 +128,16 @@ class ExtractDate(metaclass=LogAttribute):
 
         # Modify the available services with the exceptions from calendar_dates
         if cls.calendar_dates_df is not None:
-            date_groups = cls.calendar_dates_df.groupby('date')
-            for date_str in tqdm(cls.calendar_dates_df['date'].unique()):
+            date_groups = cls.calendar_dates_df.groupby("date")
+            for date_str in tqdm(cls.calendar_dates_df["date"].unique()):
                 df = date_groups.get_group(date_str)
 
                 # From the GTFS reference, for the field exception_type,
                 # a value of 1 indicates that service has been added for the specified date
                 # a value of 2 indicates that service has been removed for the specified date
                 # Reference: https://developers.google.com/transit/gtfs/reference/#calendar_datestxt
-                services_to_add = set(df[df['exception_type'] == 1]['service_id'])
-                services_to_remove = set(df[df['exception_type'] == 2]['service_id'])
+                services_to_add = set(df[df["exception_type"] == 1]["service_id"])
+                services_to_remove = set(df[df["exception_type"] == 2]["service_id"])
 
                 d2s[date_str] |= services_to_add
                 d2s[date_str] -= services_to_remove
@@ -134,18 +145,18 @@ class ExtractDate(metaclass=LogAttribute):
         cls.date_to_services = d2s
 
     @classmethod
-    @load_attr('date_to_trips')
+    @load_attr("date_to_trips")
     def get_trips_by_date(cls):
         print("\nFinding the trips available for each day...")
 
         d2t = {}
-        service_groups = cls.trips_df.groupby('service_id')
+        service_groups = cls.trips_df.groupby("service_id")
         for date_str, services in tqdm(cls.date_to_services.items()):
             trips_set = set()
             for service in services:
                 try:
                     df = service_groups.get_group(service)
-                    trips_set |= set(df['trip_id'])
+                    trips_set |= set(df["trip_id"])
                 except KeyError:
                     # service is obtained from calendar.txt and calendar_dates.txt,
                     # but there is no trip with such service_id in trips.txt
@@ -156,7 +167,7 @@ class ExtractDate(metaclass=LogAttribute):
         cls.date_to_trips = d2t
 
     @classmethod
-    @load_attr({Data: ['selected_date', 'selected_trips']})
+    @load_attr({Data: ["selected_date", "selected_trips"]})
     def extract(cls):
         cls.setup()
         cls.find_date_range()

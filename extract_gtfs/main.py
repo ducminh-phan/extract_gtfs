@@ -1,75 +1,137 @@
+import argparse
+import glob
 import os
 import shutil
 
-import pandas as pd
-
-from .collect_routes import CollectRoute
-from .data import setup, Data
-from .extract_dates import ExtractDate
-from .relabel import Relabel
-from .split_trips import SplitTrip
-from .transfers import ExtractTransfer
-from .utils import parse_args, measure_time, query_yes_no
+from extract_gtfs.config import config, setup as config_setup
+from extract_gtfs.data import Data, labels, stats
+from extract_gtfs.extract import extract
+from extract_gtfs.merge import merge
+from extract_gtfs.utils import SaveLoadDescriptor, query_yes_no, write_graph_files
 
 
-def main():
-    extract()
-    summary()
-    clean_up()
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog="python3 -m extract_gtfs",
+        description="Extract information from GTFS files to use with RAPTOR algorithm",
+    )
+
+    parser.add_argument(
+        "in_folder", help="The folder containing the GTFS files to extract"
+    )
+    parser.add_argument("out_folder", help="The folder to write the outout files")
+    parser.add_argument(
+        "nodes_file",
+        help="The file containing the coordinates of the nodes of the walking graph",
+    )
+    parser.add_argument(
+        "graph_file", help="The file containing the edges of the walking graph"
+    )
+    parser.add_argument(
+        "--no-relabel",
+        dest="relabel",
+        action="store_false",
+        help="Do not relabel the stops and trips.",
+    )
+
+    args = parser.parse_args()
+    args = check_args(parser, args)
+
+    return args
 
 
-@measure_time
-def extract():
-    args = parse_args()
-    setup(args)
+def check_args(parser, args):
+    if args.out_folder == args.in_folder:
+        parser.error("The input and output folders' names must be different")
 
-    ExtractDate.extract()
-    SplitTrip.split()
-    ExtractTransfer.extract()
-    CollectRoute.collect()
-    Relabel.create_label()
-    Relabel.relabel()
+    return args
 
-    write_files()
+
+def setup(args):
+    config_setup(args)
+
+    SaveLoadDescriptor.directory = config.tmp_folder
 
 
 def write_files():
-    # Create the folder containing the output files
-    if not os.path.exists(Data.out_folder):
-        os.makedirs(Data.out_folder)
+    print("\nWriting the output files...")
 
-    print('\nWriting the output files...')
+    name_to_columns = {
+        "stop_times": [
+            "trip_id",
+            "arrival_time",
+            "departure_time",
+            "stop_id",
+            "stop_sequence",
+        ],
+        "transfers": ["from_stop_id", "to_stop_id", "min_transfer_time"],
+        "trips": ["route_id", "trip_id"],
+        "stop_routes": ["stop_id", "route_id"],
+    }
 
-    for attr in ('stop_times', 'transfers', 'trips', 'stop_routes'):
+    for attr in ("stop_times", "transfers", "trips", "stop_routes"):
         df = getattr(Data, attr)
-        df.to_csv('{}/{}.csv.gz'.format(Data.out_folder, attr), index=False, compression='gzip')
 
-
-def summary():
-    print('Summary:')
-    print('\t{} routes'.format(Data.stats['n_routes']))
-    print('\t{} trips'.format(Data.stats['n_trips']))
-    print('\t{} stops'.format(Data.stats['n_stops']))
-    print('\t{} events'.format(Data.stats['n_events']))
-    print('\t{} transfers'.format(Data.stats['n_transfers']))
-
-    print('-' * 50)
-
-
-def clean_up():
-    if query_yes_no('Delete the temporary files?'):
-        shutil.rmtree('{}_tmp'.format(Data.in_folder))
-
-    if query_yes_no('Save the labels?'):
-        directory = '{}_labels'.format(Data.in_folder)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        # Create the DataFrames for the labels, sorted by the newly assigned labels,
-        # then save them to the label folder
-        pd.DataFrame(sorted(Relabel.trip_label.items(), key=lambda x: x[1])).to_csv(
-            '{}/trip_label.csv'.format(directory), index=False, header=['old_id', 'new_id']
+        # We need to make sure the columns are in correct order
+        df.to_csv(
+            "{}/{}.csv.gz".format(config.out_folder, attr),
+            index=False,
+            columns=name_to_columns[attr],
+            compression="gzip",
         )
-        pd.DataFrame(sorted(Relabel.stop_label.items(), key=lambda x: x[1])).to_csv(
-            '{}/stop_label.csv'.format(directory), index=False, header=['old_id', 'new_id']
-        )
+
+    write_graph_files()
+
+
+def clean_up(args):
+    # Remove the compiled C++ executable
+    file_paths = glob.glob("./close_nodes*")
+
+    for file_path in file_paths:
+        if os.path.isfile(file_path) and os.access(file_path, os.X_OK):
+            os.remove(file_path)
+
+    if query_yes_no("Delete the temporary files?"):
+        shutil.rmtree(config.tmp_folder)
+
+    if args.relabel and query_yes_no("Save the labels?"):
+        if not os.path.exists(config.labels_folder):
+            os.makedirs(config.labels_folder)
+
+        labels.save()
+
+
+def print_stats():
+    print("\nSummary:")
+    print("\t", stats.n_routes, "routes")
+    print("\t", stats.n_trips, "trips")
+    print("\t", stats.n_stops, "stops")
+    print("\t", stats.n_events, "events")
+    print("\t", stats.n_transfers, "transfers")
+
+    print("\t", stats.n_nodes, "nodes")
+    print("\t", stats.n_edges, "edges")
+    print(
+        "\t",
+        stats.n_isolated_stops,
+        "isolated stops (not connected to the walking graph)",
+    )
+    print("\t", stats.n_scc, "strongly connected components")
+    print(
+        "\t",
+        "The size of {} largest components: {}".format(
+            len(stats.cc_sizes), " ".join(map(str, stats.cc_sizes))
+        ),
+    )
+
+
+def main():
+    args = parse_args()
+    setup(args)
+
+    extract(args)
+    merge(args)
+
+    print_stats()
+    write_files()
+    clean_up(args)

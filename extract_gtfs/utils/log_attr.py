@@ -1,53 +1,6 @@
-import argparse
 import os
 import pickle
 from functools import wraps
-from time import time
-
-import pandas as pd
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="Extract information from GTFS files "
-                                                 "to use with RAPTOR algorithm")
-
-    parser.add_argument("folder", help="The folder containing the GTFS files to extract")
-    parser.add_argument("-o", "--output", default=None, help="The name of the output folder. "
-                                                             "The default name is obtained by appending "
-                                                             "'_out' to the input folder name")
-
-    args = parser.parse_args()
-    args = check_args(parser, args)
-
-    return args
-
-
-def check_args(parser, args):
-    if args.output is None:
-        args.output = args.folder + "_out"
-    elif args.output == args.folder:
-        parser.error("The input and output folders' names must be different")
-
-    return args
-
-
-def read_csv(file_name, **kwargs):
-    return pd.read_csv('{}/{}'.format(parse_args().folder, file_name), **kwargs)
-
-
-def measure_time(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time()
-        res = func(*args, **kwargs)
-
-        elapsed_time = time() - start_time
-        print('\nTime elapsed:', round(elapsed_time, 3), 'seconds')
-        print('-' * 50)
-
-        return res
-
-    return wrapper
 
 
 class SaveLoadDescriptor:
@@ -55,7 +8,8 @@ class SaveLoadDescriptor:
     Descriptor class which supports saving automatically to avoid
     recomputing expensive computations.
     """
-    directory = "{}_tmp".format(parse_args().folder)
+
+    __slots__ = ("name", "value", "directory")
 
     def __init__(self, name):
         self.name = name
@@ -74,14 +28,16 @@ class SaveLoadDescriptor:
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
 
-        with open("{}/{}".format(self.directory, file_name), 'wb') as f:
+        with open("{}/{}".format(self.directory, file_name), "wb") as f:
             pickle.dump(value, f)
 
         self.value[instance] = value
 
     def __get__(self, instance, owner):
         if self.name not in instance.__slots__:
-            raise AttributeError("{} has no attribute {}".format(instance.__name__, self.name))
+            raise AttributeError(
+                "{} has no attribute {}".format(instance.__name__, self.name)
+            )
 
         value = self.value.get(instance, None)
         if value is not None:
@@ -92,7 +48,7 @@ class SaveLoadDescriptor:
         file_name = self.get_file_name(instance)
 
         try:
-            with open("{}/{}".format(self.directory, file_name), 'rb') as f:
+            with open("{}/{}".format(self.directory, file_name), "rb") as f:
                 print("\nLoading precomputed {} from file".format(file_name[:-7]))
                 value = pickle.load(f)
 
@@ -107,10 +63,10 @@ class SaveLoadDescriptor:
 class LogAttribute(type):
     def __new__(mcs, name, bases, namespace):
         # Create and assign decriptors based on __slots__ of the derived classes
-        for key in namespace['__slots__']:
+        for key in namespace["__slots__"]:
             # Skip names containing df since they are DataFrames loaded from the GTFS files,
             # also skip attributes which are already assigned
-            if 'df' not in key and key not in mcs.__dict__:
+            if "df" not in key and key not in mcs.__dict__:
                 setattr(mcs, key, SaveLoadDescriptor(key))
 
         return super().__new__(mcs, name, bases, namespace)
@@ -145,7 +101,9 @@ def load_attr(*attr_names):
                     if isinstance(names, str):
                         names = [names]
 
-                    val = val and (all(getattr(cls_, name) is not None for name in names) or None)
+                    val = val and (
+                        all(getattr(cls_, name) is not None for name in names) or None
+                    )
             else:
                 val = all(getattr(cls, name) is not None for name in attr_names) or None
 
@@ -155,34 +113,3 @@ def load_attr(*attr_names):
         return wrapper
 
     return decorator
-
-
-def query_yes_no(question, default="yes"):
-    """
-    Ask a yes/no question using input() and return the answer.
-    :param question: a string that is presented to the user
-    :param default: the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user)
-    :return: True for "yes" or False for "no"
-    """
-    valid = {"yes": True, "y": True,
-             "no": False, "n": False}
-
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        choice = input(question + prompt).lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            print("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
